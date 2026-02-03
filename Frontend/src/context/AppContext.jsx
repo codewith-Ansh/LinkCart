@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AppContext = createContext();
 
@@ -10,14 +10,16 @@ export const AppProvider = ({ children }) => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
     };
 
+    useEffect(() => {
+        document.body.className = theme;
+    }, [theme]);
+
     const login = () => setUser({ loggedIn: true, name: 'John Doe' });
     const logout = () => setUser({ loggedIn: false });
 
     return (
         <AppContext.Provider value={{ theme, toggleTheme, user, login, logout }}>
-            <div className={theme}>
-                {children}
-            </div>
+            {children}
         </AppContext.Provider>
     );
 };

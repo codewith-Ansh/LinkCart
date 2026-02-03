@@ -1,11 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
-import { Moon, Sun, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Moon, Sun } from 'lucide-react';
+import { initializeTheme, saveTheme } from '../utils/theme';
 
 const Navbar = () => {
-    const { theme, toggleTheme, user } = useAppContext();
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const location = useLocation();
+    const isVisitOthersPage = location.pathname === '/explore';
+    
+    // Initialize theme from localStorage
+    const [theme, setTheme] = useState(() => initializeTheme());
+
+    // Toggle between light and dark theme
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        saveTheme(newTheme);
+    };
 
     return (
         <nav className="navbar">
@@ -14,46 +24,23 @@ const Navbar = () => {
                     Link<span>Cart</span>
                 </Link>
 
-                {/* Desktop Menu */}
-                <div className="nav-links">
-                    <Link to="/explore">Visit Others</Link>
-                    {user.loggedIn ? (
-                        <span className="user-welcome">Hi, {user.name}</span>
-                    ) : (
-                        <>
-                            <Link to="/login" className="login-btn">Login</Link>
-                            <Link to="/signup" className="signup-btn">Sign Up</Link>
-                        </>
+                <div className="nav-center">
+                    {/* Empty center */}
+                </div>
+
+                <div className="nav-right">
+                    {isVisitOthersPage && (
+                        <Link to="/" className="nav-link">Home</Link>
                     )}
+                    {!isVisitOthersPage && (
+                        <Link to="/explore" className="nav-link">Visit Others</Link>
+                    )}
+                    <Link to="/login" className="login-link">Login</Link>
+                    <Link to="/signup" className="signup-button">Sign up</Link>
                     <button onClick={toggleTheme} className="theme-toggle">
                         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                     </button>
                 </div>
-
-                {/* Mobile Menu Toggle */}
-                <div className="mobile-toggle">
-                    <button onClick={toggleTheme} className="theme-toggle">
-                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                    </button>
-                    <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="menu-btn">
-                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-
-                {/* Mobile Menu Content */}
-                {isMenuOpen && (
-                    <div className="mobile-menu">
-                        <Link to="/explore" onClick={() => setIsMenuOpen(false)}>Visit Others</Link>
-                        {user.loggedIn ? (
-                            <span>Hi, {user.name}</span>
-                        ) : (
-                            <>
-                                <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
-                            </>
-                        )}
-                    </div>
-                )}
             </div>
         </nav>
     );
