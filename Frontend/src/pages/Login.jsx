@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -10,6 +10,7 @@ const Login = () => {
         password: ''
     });
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     // Handle input changes
     const handleChange = (e) => {
@@ -20,18 +21,48 @@ const Login = () => {
     };
 
     // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Basic validation
         if (!formData.email || !formData.password) {
             setError('Please fill in all fields');
             return;
         }
-        
+
         setError('');
-        console.log('Login attempt:', formData);
-        // Here you would normally handle login
+
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || 'Login failed');
+                return;
+            }
+
+            // ✅ STORE JWT TOKEN HERE
+            localStorage.setItem('token', data.token);
+
+            // Optional: store userId if backend sends it
+            // localStorage.setItem('userId', data.userId);
+
+            // Redirect after login
+            navigate('/'); // redirect to home page
+
+        } catch (err) {
+            setError('Server error. Please try again later.');
+        }
     };
 
     return (
@@ -41,9 +72,9 @@ const Login = () => {
                 <div className="auth-container">
                     <div className="auth-card">
                         <h2 className="auth-title">Login</h2>
-                        
+
                         {error && <div className="error-message">{error}</div>}
-                        
+
                         <form onSubmit={handleSubmit} className="auth-form">
                             <div className="form-group">
                                 <input
@@ -55,7 +86,7 @@ const Login = () => {
                                     className="form-input"
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <input
                                     type="password"
@@ -66,12 +97,12 @@ const Login = () => {
                                     className="form-input"
                                 />
                             </div>
-                            
+
                             <button type="submit" className="auth-button">
                                 Login
                             </button>
                         </form>
-                        
+
                         <p className="auth-link">
                             Don't have an account? <Link to="/signup">Sign Up</Link>
                         </p>
