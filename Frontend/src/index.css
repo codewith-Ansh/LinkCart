@@ -861,6 +861,23 @@ body.dark .example-btn {
   border-color: var(--primary-color);
 }
 
+.form-input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-input.input-error {
+  border-color: #EF4444;
+}
+
+.field-error {
+  display: block;
+  color: #EF4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
 .form-input::placeholder {
   color: var(--text-muted);
 }

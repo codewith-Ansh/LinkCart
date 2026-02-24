@@ -53,6 +53,7 @@ const Login = () => {
 
             // ✅ STORE JWT TOKEN HERE
             localStorage.setItem('token', data.token);
+            localStorage.setItem("customId", data.customId);
 
             // Optional: store userId if backend sends it
             // localStorage.setItem('userId', data.userId);
