@@ -92,15 +92,26 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { customId: user.custom_id, email: user.email },
+            { custom_id: user.custom_id, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
 
+        // Check profile completion
+        const profileResult = await pool.query(
+            "SELECT profile_completed FROM user_profiles WHERE user_id = $1",
+            [user.custom_id]
+        );
+
+        const redirectTo = (profileResult.rows.length === 0 || !profileResult.rows[0].profile_completed)
+            ? "/complete-profile"
+            : "/dashboard";
+
         res.json({
             message: "Login successful",
             token,
-            customId: user.custom_id
+            customId: user.custom_id,
+            redirectTo
         });
 
     } catch (error) {
