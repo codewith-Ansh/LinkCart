@@ -132,75 +132,75 @@ const Signup = () => {
     return (
         <>
             <Navbar />
-            <div className="auth-page">
-                <div className="auth-container">
-                    <div className="auth-card">
-                        <h2 className="auth-title">Sign Up</h2>
+            <div className="min-h-[calc(100vh-72px)] flex items-center justify-center bg-slate-50 px-4 py-12">
+                <div className="w-full max-w-md">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
+                        <h2 className="font-heading text-3xl font-bold text-center mb-8">Sign Up</h2>
 
-                        {error && <div className="error-message">{error}</div>}
+                        {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 text-center border border-red-200">{error}</div>}
 
-                        <form onSubmit={handleSubmit} className="auth-form">
-                            <div className="form-group">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                            <div>
                                 <input
                                     type="text"
                                     name="fullName"
                                     placeholder="Full Name"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    className={`form-input ${errors.fullName ? 'input-error' : ''}`}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${errors.fullName ? 'border-red-500' : 'border-slate-300'}`}
                                 />
-                                {errors.fullName && <span className="field-error">{errors.fullName}</span>}
+                                {errors.fullName && <span className="text-red-500 text-xs mt-1 block">{errors.fullName}</span>}
                             </div>
 
-                            <div className="form-group">
+                            <div>
                                 <input
                                     type="email"
                                     name="email"
                                     placeholder="Email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`form-input ${errors.email ? 'input-error' : ''}`}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed ${errors.email ? 'border-red-500' : 'border-slate-300'}`}
                                     disabled={!!errors.fullName}
                                 />
-                                {errors.email && <span className="field-error">{errors.email}</span>}
+                                {errors.email && <span className="text-red-500 text-xs mt-1 block">{errors.email}</span>}
                             </div>
 
-                            <div className="form-group">
+                            <div>
                                 <input
                                     type="password"
                                     name="password"
                                     placeholder="Password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`form-input ${errors.password ? 'input-error' : ''}`}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed ${errors.password ? 'border-red-500' : 'border-slate-300'}`}
                                     disabled={!!errors.fullName || !!errors.email}
                                 />
-                                {errors.password && <span className="field-error">{errors.password}</span>}
+                                {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password}</span>}
                             </div>
 
-                            <div className="form-group">
+                            <div>
                                 <input
                                     type="password"
                                     name="confirmPassword"
                                     placeholder="Confirm Password"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed ${errors.confirmPassword ? 'border-red-500' : 'border-slate-300'}`}
                                     disabled={!!errors.fullName || !!errors.email || !!errors.password}
                                 />
-                                {errors.confirmPassword && <span className="field-error">{errors.confirmPassword}</span>}
+                                {errors.confirmPassword && <span className="text-red-500 text-xs mt-1 block">{errors.confirmPassword}</span>}
                             </div>
 
                             <button 
                                 type="submit" 
-                                className="auth-button"
+                                className="bg-primary text-white font-semibold px-4 py-3 rounded-xl hover:bg-primary-dark transition-colors mt-2"
                             >
                                 Create Account
                             </button>
                         </form>
 
-                        <p className="auth-link">
-                            Already have an account? <Link to="/login">Login</Link>
+                        <p className="text-center mt-6 text-slate-600 text-sm">
+                            Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Login</Link>
                         </p>
                     </div>
                 </div>

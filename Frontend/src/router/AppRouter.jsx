@@ -10,12 +10,18 @@ import PostAd from '../pages/PostAd';
 import SellerProfile from '../pages/SellerProfile';
 import AdminPanel from '../pages/AdminPanel';
 import ProductDetail from '../pages/ProductDetail';
+import CompleteProfile from '../pages/CompleteProfile';
+import Login from '../pages/Login';
+import Signup from '../pages/Signup';
 
 const AppRouter = () => {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/explore" element={<VisitOthers />} />
