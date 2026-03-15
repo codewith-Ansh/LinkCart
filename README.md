@@ -133,3 +133,5 @@ CREATE TABLE user_profiles (
 - Protected API routes
 - SQL injection prevention
 - Input validation
+
+Admin Dashboard branch working
