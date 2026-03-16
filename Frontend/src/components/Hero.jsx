@@ -1,6 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 
 const Hero = () => {
+    const { isLoggedIn } = useAppContext();
+    const navigate = useNavigate();
+
     return (
         <section className="w-full bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-6 md:px-12 lg:px-20 py-20 md:py-32 animate-fade-in">
             <div className="w-full grid md:grid-cols-2 gap-16 items-center">
@@ -12,7 +17,9 @@ const Hero = () => {
                         Share products, profiles, content, and links — all from one powerful page.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-10 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        <button
+                            onClick={() => navigate(isLoggedIn ? '/post-ad' : '/login')}
+                            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-10 py-4 rounded-xl text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
                             Create Your OneLink
                         </button>
                         <button className="border-2 border-indigo-500 text-indigo-600 font-semibold px-10 py-4 rounded-xl text-lg hover:bg-indigo-50 transition-all duration-300">

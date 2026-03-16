@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useAppContext } from '../context/AppContext';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Login = () => {
     });
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { login } = useAppContext();
 
     const handleChange = (e) => {
         setFormData({
@@ -42,7 +44,7 @@ const Login = () => {
 
             const data = await response.json();
 
-            console.log('Login response:', data); // Debug log
+            console.log('Login response:', data);
 
             if (!response.ok) {
                 setError(data.error || 'Login failed');
@@ -50,10 +52,9 @@ const Login = () => {
             }
 
             localStorage.setItem('token', data.token);
-            localStorage.setItem("customId", data.customId);
-            
-            console.log('Redirect to:', data.redirectTo); // Debug log
-            
+            localStorage.setItem('customId', data.customId);
+            login();
+
             if (data.redirectTo === '/complete-profile') {
                 navigate('/complete-profile');
             } else {

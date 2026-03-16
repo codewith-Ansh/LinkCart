@@ -4,7 +4,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [theme, setTheme] = useState('light');
-    const [user, setUser] = useState({ loggedIn: false });
+    const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
 
     const toggleTheme = () => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -14,11 +14,21 @@ export const AppProvider = ({ children }) => {
         document.body.className = theme;
     }, [theme]);
 
-    const login = () => setUser({ loggedIn: true, name: 'John Doe' });
-    const logout = () => setUser({ loggedIn: false });
+    useEffect(() => {
+        const syncAuth = () => setIsLoggedIn(!!localStorage.getItem('token'));
+        window.addEventListener('storage', syncAuth);
+        return () => window.removeEventListener('storage', syncAuth);
+    }, []);
+
+    const login = () => setIsLoggedIn(true);
+    const logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('customId');
+        setIsLoggedIn(false);
+    };
 
     return (
-        <AppContext.Provider value={{ theme, toggleTheme, user, login, logout }}>
+        <AppContext.Provider value={{ theme, toggleTheme, isLoggedIn, login, logout }}>
             {children}
         </AppContext.Provider>
     );
