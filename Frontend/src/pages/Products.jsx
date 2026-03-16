@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ImageOff, MapPin, Calendar } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+
+const ImagePlaceholder = () => (
+    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
+        <ImageOff size={32} />
+        <span className="text-xs font-medium">No Image Available</span>
+    </div>
+);
 
 const Products = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
-
-    const mockProducts = [
-        { id: 1, title: 'Vintage Leather Jacket', price: 299, location: 'New York, NY', status: 'Active', image: 'https://via.placeholder.com/400x300/6366f1/ffffff?text=Product+1' },
-        { id: 2, title: 'iPhone 13 Pro', price: 799, location: 'Los Angeles, CA', status: 'Sold', image: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Product+2' },
-        { id: 3, title: 'Gaming Laptop', price: 1299, location: 'Chicago, IL', status: 'Active', image: 'https://via.placeholder.com/400x300/ec4899/ffffff?text=Product+3' },
-        { id: 4, title: 'Wireless Headphones', price: 149, location: 'Houston, TX', status: 'Active', image: 'https://via.placeholder.com/400x300/22c55e/ffffff?text=Product+4' },
-        { id: 5, title: 'Smart Watch', price: 399, location: 'Phoenix, AZ', status: 'Active', image: 'https://via.placeholder.com/400x300/f59e0b/ffffff?text=Product+5' },
-        { id: 6, title: 'Camera Lens', price: 599, location: 'Philadelphia, PA', status: 'Sold', image: 'https://via.placeholder.com/400x300/ef4444/ffffff?text=Product+6' },
-        { id: 7, title: 'Mechanical Keyboard', price: 179, location: 'San Antonio, TX', status: 'Active', image: 'https://via.placeholder.com/400x300/06b6d4/ffffff?text=Product+7' },
-        { id: 8, title: 'Office Chair', price: 249, location: 'San Diego, CA', status: 'Active', image: 'https://via.placeholder.com/400x300/a855f7/ffffff?text=Product+8' },
-    ];
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        const savedProducts = JSON.parse(localStorage.getItem('myListings') || '[]');
-        setProducts([...savedProducts, ...mockProducts]);
+        fetch('http://localhost:5000/api/products/public')
+            .then((res) => res.json())
+            .then((data) => {
+                if (Array.isArray(data)) setProducts(data);
+                else setError(data.error || 'Failed to load products');
+            })
+            .catch(() => setError('Could not connect to server'))
+            .finally(() => setLoading(false));
     }, []);
 
     return (
@@ -30,29 +35,57 @@ const Products = () => {
                 <h1 className="text-5xl md:text-6xl font-extrabold mb-16 tracking-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                     All Products
                 </h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                        <div
-                            key={product.id}
-                            className="group bg-white rounded-2xl border border-slate-200 overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
-                            onClick={() => navigate(`/product/${product.id}`)}
-                        >
-                            <div className="relative h-56 overflow-hidden">
-                                <img src={product.image} alt={product.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                <span className={`absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-lg ${
-                                    product.status === 'Sold' ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'
-                                }`}>
-                                    {product.status}
-                                </span>
+
+                {loading && <p className="text-center text-gray-500 py-20">Loading...</p>}
+                {error && <p className="text-center text-red-500 py-20">{error}</p>}
+                {!loading && !error && products.length === 0 && (
+                    <p className="text-center text-gray-500 py-20">No public products yet.</p>
+                )}
+
+                {!loading && !error && products.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {products.map((product) => (
+                            <div
+                                key={product.id}
+                                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl flex flex-col"
+                                onClick={() => navigate(`/p/${product.slug}`)}
+                            >
+                                <div className="overflow-hidden">
+                                    {product.image_url ? (
+                                        <img src={product.image_url} alt={product.title} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    ) : (
+                                        <ImagePlaceholder />
+                                    )}
+                                </div>
+                                <div className="p-5 flex flex-col flex-1">
+                                    <h3 className="font-bold text-lg mb-1 truncate">{product.title}</h3>
+                                    <p className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                                        ${product.price}
+                                    </p>
+                                    {product.location && (
+                                        <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
+                                            <MapPin size={13} />
+                                            <span className="truncate">{product.location}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-1 text-gray-400 text-xs mb-3">
+                                        <Calendar size={12} />
+                                        <span>{new Date(product.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                                        <button
+                                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors truncate"
+                                            onClick={(e) => { e.stopPropagation(); navigate(`/user/${product.user_id}`); }}
+                                        >
+                                            {product.user_id}
+                                        </button>
+                                        <span className="text-xs bg-indigo-50 text-indigo-600 font-bold px-2 py-1 rounded-lg">Public</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="p-5">
-                                <h3 className="font-bold text-lg mb-2 truncate">{product.title}</h3>
-                                <p className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">${product.price}</p>
-                                <p className="text-gray-500 text-sm">{product.location}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
             <Footer />
         </div>

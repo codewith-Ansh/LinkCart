@@ -10,6 +10,8 @@ import PostAd from '../pages/PostAd';
 import SellerProfile from '../pages/SellerProfile';
 import AdminPanel from '../pages/AdminPanel';
 import ProductDetail from '../pages/ProductDetail';
+import PublicProductPage from '../pages/PublicProductPage';
+import UserProfile from '../pages/UserProfile';
 import CompleteProfile from '../pages/CompleteProfile';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
@@ -30,7 +32,9 @@ const AppRouter = () => {
                 <Route path="/post-ad" element={<PostAd />} />
                 <Route path="/seller/:id" element={<SellerProfile />} />
                 <Route path="/admin" element={<AdminPanel />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/product/:slug" element={<ProductDetail />} />
+                <Route path="/p/:slug" element={<PublicProductPage />} />
+                <Route path="/user/:custom_id" element={<UserProfile />} />
             </Routes>
         </Router>
     );
