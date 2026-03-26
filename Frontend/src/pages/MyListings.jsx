@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, ImageOff, MapPin, Calendar, Copy } from 'lucide-react';
+import { Package, ImageOff, MapPin, Calendar, Copy, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import API_BASE from '../utils/api';
+
+const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
+const Blobs  = () => (
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div style={{ width: 500, height: 500, top: '-140px', left: '-140px', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+        <div style={{ width: 420, height: 420, bottom: '-100px', right: '-80px',  background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+    </div>
+);
 
 const ImagePlaceholder = () => (
     <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -22,7 +31,7 @@ const MyListings = () => {
         const token = localStorage.getItem('token');
         if (!token) { navigate('/login'); return; }
 
-        fetch('http://localhost:5000/api/products/my', {
+        fetch(`${API_BASE}/api/products/my`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((res) => res.json())
@@ -42,22 +51,27 @@ const MyListings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen" style={pageBg}>
+            <Blobs />
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-16 animate-fade-in">
                 <div className="flex items-center justify-between mb-16">
-                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-800" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                         My Listings
                     </h1>
                     <button
                         onClick={() => navigate('/post-ad')}
-                        className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-6 py-3 rounded-xl hover:scale-105 hover:shadow-lg transition-all"
+                        className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-6 py-3 rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 active:translate-y-0 transition-all duration-200"
                     >
                         + Create Link
                     </button>
                 </div>
 
-                {loading && <p className="text-center text-gray-500 py-20">Loading...</p>}
+                {loading && (
+                    <div className="flex justify-center py-20">
+                        <Loader2 size={32} className="animate-spin text-indigo-400" />
+                    </div>
+                )}
                 {error && <p className="text-center text-red-500 py-20">{error}</p>}
 
                 {!loading && !error && listings.length === 0 && (
@@ -81,7 +95,7 @@ const MyListings = () => {
                         {listings.map((listing) => (
                             <div
                                 key={listing.id}
-                                className="bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer flex flex-col"
+                                className="bg-white/80 backdrop-blur-sm border border-white rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer flex flex-col"
                                 onClick={() => navigate(`/p/${listing.slug}`)}
                             >
                                 <div className="relative">

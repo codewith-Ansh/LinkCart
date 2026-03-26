@@ -1,65 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
+import { Phone, MapPin, Home, Hash, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { profileSchema } from '../utils/validationSchemas';
 import { INDIAN_STATES_CITIES } from '../utils/indianStatesData';
+import API_BASE from '../utils/api';
 
-// Indian pincode first-digit ranges by state (approximate zone validation)
 const STATE_PINCODE_ZONES = {
-    'Jammu and Kashmir': ['18', '19'],
-    'Ladakh': ['19'],
-    'Himachal Pradesh': ['17'],
-    'Punjab': ['14', '15', '16'],
-    'Chandigarh': ['16'],
-    'Uttarakhand': ['24', '26'],
-    'Haryana': ['12', '13'],
-    'Delhi': ['11'],
-    'Rajasthan': ['30', '31', '32', '33', '34'],
+    'Jammu and Kashmir': ['18', '19'], 'Ladakh': ['19'], 'Himachal Pradesh': ['17'],
+    'Punjab': ['14', '15', '16'], 'Chandigarh': ['16'], 'Uttarakhand': ['24', '26'],
+    'Haryana': ['12', '13'], 'Delhi': ['11'], 'Rajasthan': ['30', '31', '32', '33', '34'],
     'Uttar Pradesh': ['20', '21', '22', '23', '24', '25', '26', '27', '28'],
-    'Bihar': ['80', '81', '82', '83', '84', '85'],
-    'Sikkim': ['73'],
-    'Arunachal Pradesh': ['79'],
-    'Nagaland': ['79'],
-    'Manipur': ['79'],
-    'Mizoram': ['79'],
-    'Tripura': ['79'],
-    'Meghalaya': ['79'],
-    'Assam': ['78'],
+    'Bihar': ['80', '81', '82', '83', '84', '85'], 'Sikkim': ['73'],
+    'Arunachal Pradesh': ['79'], 'Nagaland': ['79'], 'Manipur': ['79'],
+    'Mizoram': ['79'], 'Tripura': ['79'], 'Meghalaya': ['79'], 'Assam': ['78'],
     'West Bengal': ['70', '71', '72', '73', '74'],
-    'Jharkhand': ['82', '83', '84', '85'],
-    'Odisha': ['75', '76', '77'],
-    'Chhattisgarh': ['49'],
-    'Madhya Pradesh': ['45', '46', '47', '48', '49'],
+    'Jharkhand': ['82', '83', '84', '85'], 'Odisha': ['75', '76', '77'],
+    'Chhattisgarh': ['49'], 'Madhya Pradesh': ['45', '46', '47', '48', '49'],
     'Gujarat': ['36', '37', '38', '39'],
     'Dadra and Nagar Haveli and Daman and Diu': ['39'],
-    'Maharashtra': ['40', '41', '42', '43', '44'],
-    'Goa': ['40'],
-    'Karnataka': ['56', '57', '58', '59'],
-    'Andhra Pradesh': ['50', '51', '52', '53'],
-    'Telangana': ['50'],
-    'Tamil Nadu': ['60', '61', '62', '63', '64'],
-    'Kerala': ['67', '68', '69'],
-    'Lakshadweep': ['68'],
-    'Puducherry': ['60', '53'],
-    'Andaman and Nicobar Islands': ['74'],
+    'Maharashtra': ['40', '41', '42', '43', '44'], 'Goa': ['40'],
+    'Karnataka': ['56', '57', '58', '59'], 'Andhra Pradesh': ['50', '51', '52', '53'],
+    'Telangana': ['50'], 'Tamil Nadu': ['60', '61', '62', '63', '64'],
+    'Kerala': ['67', '68', '69'], 'Lakshadweep': ['68'],
+    'Puducherry': ['60', '53'], 'Andaman and Nicobar Islands': ['74'],
 };
 
-const fieldClass = (touched, error, value) => {
-    const base = 'w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all bg-white';
-    if (touched && error) return `${base} border-red-400 focus:ring-red-300`;
-    if (touched && !error && value) return `${base} border-green-400 focus:ring-green-300`;
-    return `${base} border-slate-300 focus:ring-primary`;
+const fieldState = (touched, error, value) => {
+    if (touched && error)           return 'border-red-400 focus:ring-red-100 focus:border-red-400';
+    if (touched && !error && value) return 'border-emerald-400 focus:ring-emerald-100 focus:border-emerald-400';
+    return 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400';
 };
+
+const inputBase = 'w-full px-4 py-3 bg-white border rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all duration-200';
 
 const FieldError = ({ touched, error }) =>
-    touched && error ? <span className="text-red-500 text-xs mt-1 block">{error}</span> : null;
+    touched && error ? (
+        <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-red-400" />{error}
+        </p>
+    ) : null;
+
+const Label = ({ icon: Icon, children }) => (
+    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+        <Icon size={12} className="text-indigo-400" />{children}
+    </label>
+);
 
 const CompleteProfile = () => {
-    const [userId, setUserId] = useState('');
+    const [userId, setUserId]       = useState('');
     const [serverError, setServerError] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading]     = useState(true);
     const navigate = useNavigate();
 
     const formik = useFormik({
@@ -68,14 +61,10 @@ const CompleteProfile = () => {
         enableReinitialize: true,
         validate: (values) => {
             const errors = {};
-            // Pincode zone validation against selected state
             if (values.pincode && values.pincode.length === 6 && values.state) {
                 const zones = STATE_PINCODE_ZONES[values.state];
-                if (zones) {
-                    const prefix = values.pincode.substring(0, 2);
-                    if (!zones.includes(prefix)) {
-                        errors.pincode = `Pincode does not match the selected state (${values.state})`;
-                    }
+                if (zones && !zones.includes(values.pincode.substring(0, 2))) {
+                    errors.pincode = `Pincode does not match the selected state (${values.state})`;
                 }
             }
             return errors;
@@ -85,20 +74,10 @@ const CompleteProfile = () => {
             const token = localStorage.getItem('token');
             if (!token) { navigate('/login'); return; }
             try {
-                const payload = {
-                    phone: `+91${values.phone}`,
-                    address: values.address,
-                    state: values.state,
-                    city: values.city,
-                    pincode: values.pincode,
-                };
-                const response = await fetch('http://localhost:5000/api/profile', {
+                const response = await fetch(`${API_BASE}/api/profile`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ phone: `+91${values.phone}`, address: values.address, state: values.state, city: values.city, pincode: values.pincode }),
                 });
                 const data = await response.json();
                 if (!response.ok) { setServerError(data.error || 'Failed to save profile'); return; }
@@ -111,7 +90,6 @@ const CompleteProfile = () => {
         },
     });
 
-    // When state changes, reset city and pincode
     const handleStateChange = (e) => {
         formik.setFieldValue('state', e.target.value);
         formik.setFieldValue('city', '');
@@ -120,40 +98,31 @@ const CompleteProfile = () => {
         formik.setFieldTouched('pincode', false);
     };
 
-    // Only allow digits in phone field
     const handlePhoneChange = (e) => {
-        const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-        formik.setFieldValue('phone', digits);
+        formik.setFieldValue('phone', e.target.value.replace(/\D/g, '').slice(0, 10));
     };
 
-    // Only allow digits in pincode field
     const handlePincodeChange = (e) => {
-        const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-        formik.setFieldValue('pincode', digits);
+        formik.setFieldValue('pincode', e.target.value.replace(/\D/g, '').slice(0, 6));
     };
 
     const citiesForState = formik.values.state ? (INDIAN_STATES_CITIES[formik.values.state] || []) : [];
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token    = localStorage.getItem('token');
         const customId = localStorage.getItem('customId');
         if (!token) { navigate('/login'); return; }
         setUserId(customId || '');
-
-        fetch('http://localhost:5000/api/profile', {
-            headers: { 'Authorization': `Bearer ${token}` },
-        })
+        fetch(`${API_BASE}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => res.json())
             .then(data => {
                 if (data.profile) {
-                    const rawPhone = data.profile.phone || '';
-                    // Strip +91 prefix if stored with it
-                    const phoneDigits = rawPhone.startsWith('+91') ? rawPhone.slice(3) : rawPhone;
+                    const raw = data.profile.phone || '';
                     formik.setValues({
-                        phone: phoneDigits,
+                        phone:   raw.startsWith('+91') ? raw.slice(3) : raw,
                         address: data.profile.address || '',
-                        state: data.profile.state || '',
-                        city: data.profile.city || '',
+                        state:   data.profile.state   || '',
+                        city:    data.profile.city    || '',
                         pincode: data.profile.pincode || '',
                     });
                 }
@@ -166,8 +135,9 @@ const CompleteProfile = () => {
         return (
             <>
                 <Navbar />
-                <div className="min-h-[calc(100vh-72px)] flex items-center justify-center bg-slate-50">
-                    <div className="text-xl text-slate-600">Loading...</div>
+                <div className="min-h-[calc(100vh-80px)] flex items-center justify-center"
+                     style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}>
+                    <Loader2 size={32} className="animate-spin text-indigo-500" />
                 </div>
                 <Footer />
             </>
@@ -177,50 +147,67 @@ const CompleteProfile = () => {
     return (
         <>
             <Navbar />
-            <div className="min-h-[calc(100vh-72px)] flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-4 py-12">
-                <div className="w-full max-w-2xl">
-                    <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl">
-                        <div className="flex flex-col items-center mb-8">
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                                {userId.charAt(0).toUpperCase()}
-                            </div>
-                            <h2 className="mt-3 text-xl font-semibold text-slate-800">{userId}</h2>
-                        </div>
 
-                        <h2 className="font-heading text-3xl font-bold text-center mb-2">Complete Your Profile</h2>
-                        <p className="text-slate-600 text-center mb-8 text-sm">Please provide your details to continue</p>
+            <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14"
+                 style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}>
+
+                {/* decorative blobs */}
+                <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+                    <div style={{ width: 500, height: 500, top: '-140px', left: '-140px', background: 'radial-gradient(circle, rgba(99,102,241,0.11) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+                    <div style={{ width: 420, height: 420, bottom: '-100px', right: '-80px', background: 'radial-gradient(circle, rgba(168,85,247,0.09) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+                </div>
+
+                <div className="w-full max-w-2xl animate-fade-in">
+
+                    {/* brand + avatar header */}
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-2xl font-bold shadow-lg shadow-indigo-200 mb-3">
+                            {userId.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <p className="text-sm font-semibold text-slate-700">{userId}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Complete your profile to get started</p>
+                    </div>
+
+                    {/* card */}
+                    <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)]">
+
+                        <h2 className="font-bold text-2xl text-slate-800 mb-1" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                            Complete Your Profile
+                        </h2>
+                        <p className="text-slate-500 text-sm mb-6">Fill in your details to unlock all features</p>
 
                         {serverError && (
-                            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 text-center border border-red-200">
+                            <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 animate-fade-in">
+                                <span className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold">!</span>
                                 {serverError}
                             </div>
                         )}
 
-                        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4" noValidate>
+                        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-5" noValidate>
 
-                            {/* Phone — +91 prefix locked, user enters 10 digits */}
+                            {/* Phone */}
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Phone Number</label>
-                                <div className={`flex items-center border rounded-xl overflow-hidden transition-all ${
-                                    formik.touched.phone && formik.errors.phone
-                                        ? 'border-red-400'
+                                <Label icon={Phone}>Phone Number</Label>
+                                <div className={`flex items-center border rounded-xl overflow-hidden bg-white transition-all duration-200
+                                    ${formik.touched.phone && formik.errors.phone
+                                        ? 'border-red-400 ring-4 ring-red-100'
                                         : formik.touched.phone && !formik.errors.phone && formik.values.phone
-                                        ? 'border-green-400'
-                                        : 'border-slate-300'
-                                }`}>
-                                    <span className="px-4 py-3 bg-slate-100 text-slate-600 font-semibold text-sm border-r border-slate-300 select-none whitespace-nowrap">
+                                        ? 'border-emerald-400 ring-4 ring-emerald-100'
+                                        : 'border-slate-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100'
+                                    }`}>
+                                    <span className="px-4 py-3 bg-slate-50 text-slate-500 font-semibold text-sm border-r border-slate-200 select-none whitespace-nowrap">
                                         +91
                                     </span>
                                     <input
                                         type="tel"
                                         name="phone"
-                                        placeholder="Enter 10-digit mobile number"
+                                        placeholder="10-digit mobile number"
                                         value={formik.values.phone}
                                         onChange={handlePhoneChange}
                                         onBlur={formik.handleBlur}
                                         maxLength={10}
                                         inputMode="numeric"
-                                        className="flex-1 px-4 py-3 focus:outline-none focus:ring-0 bg-white text-slate-800"
+                                        className="flex-1 px-4 py-3 focus:outline-none bg-transparent text-sm text-slate-800 placeholder-slate-400"
                                     />
                                 </div>
                                 <FieldError touched={formik.touched.phone} error={formik.errors.phone} />
@@ -228,90 +215,100 @@ const CompleteProfile = () => {
 
                             {/* Address */}
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Address</label>
+                                <Label icon={Home}>Address</Label>
                                 <textarea
                                     name="address"
                                     placeholder="e.g. 12, MG Road, Andheri West"
                                     value={formik.values.address}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    rows="2"
-                                    className={`${fieldClass(formik.touched.address, formik.errors.address, formik.values.address)} resize-none`}
+                                    rows={2}
+                                    className={`${inputBase} ${fieldState(formik.touched.address, formik.errors.address, formik.values.address)} resize-none`}
                                 />
                                 <FieldError touched={formik.touched.address} error={formik.errors.address} />
                             </div>
 
-                            {/* State dropdown — first */}
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">State</label>
-                                <select
-                                    name="state"
-                                    value={formik.values.state}
-                                    onChange={handleStateChange}
-                                    onBlur={formik.handleBlur}
-                                    className={fieldClass(formik.touched.state, formik.errors.state, formik.values.state)}
-                                >
-                                    <option value="">Select State</option>
-                                    {Object.keys(INDIAN_STATES_CITIES).sort().map(s => (
-                                        <option key={s} value={s}>{s}</option>
-                                    ))}
-                                </select>
-                                <FieldError touched={formik.touched.state} error={formik.errors.state} />
-                            </div>
+                            {/* State + City side by side on md+ */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label icon={MapPin}>State</Label>
+                                    <select
+                                        name="state"
+                                        value={formik.values.state}
+                                        onChange={handleStateChange}
+                                        onBlur={formik.handleBlur}
+                                        className={`${inputBase} ${fieldState(formik.touched.state, formik.errors.state, formik.values.state)}`}
+                                    >
+                                        <option value="">Select State</option>
+                                        {Object.keys(INDIAN_STATES_CITIES).sort().map(s => (
+                                            <option key={s} value={s}>{s}</option>
+                                        ))}
+                                    </select>
+                                    <FieldError touched={formik.touched.state} error={formik.errors.state} />
+                                </div>
 
-                            {/* City dropdown — depends on state */}
-                            <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">City</label>
-                                <select
-                                    name="city"
-                                    value={formik.values.city}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    disabled={!formik.values.state}
-                                    className={`${fieldClass(formik.touched.city, formik.errors.city, formik.values.city)} disabled:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400`}
-                                >
-                                    <option value="">
-                                        {formik.values.state ? 'Select City' : 'Select a state first'}
-                                    </option>
-                                    {citiesForState.sort().map(c => (
-                                        <option key={c} value={c}>{c}</option>
-                                    ))}
-                                </select>
-                                <FieldError touched={formik.touched.city} error={formik.errors.city} />
+                                <div>
+                                    <Label icon={MapPin}>City</Label>
+                                    <select
+                                        name="city"
+                                        value={formik.values.city}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        disabled={!formik.values.state}
+                                        className={`${inputBase} ${fieldState(formik.touched.city, formik.errors.city, formik.values.city)} disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                                    >
+                                        <option value="">{formik.values.state ? 'Select City' : 'Select a state first'}</option>
+                                        {citiesForState.sort().map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
+                                    <FieldError touched={formik.touched.city} error={formik.errors.city} />
+                                </div>
                             </div>
 
                             {/* Pincode */}
                             <div>
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Pincode</label>
+                                <Label icon={Hash}>Pincode</Label>
                                 <input
                                     type="text"
                                     name="pincode"
-                                    placeholder="Enter 6-digit pincode"
+                                    placeholder="6-digit pincode"
                                     value={formik.values.pincode}
                                     onChange={handlePincodeChange}
                                     onBlur={formik.handleBlur}
                                     maxLength={6}
                                     inputMode="numeric"
                                     disabled={!formik.values.city}
-                                    className={`${fieldClass(formik.touched.pincode, formik.errors.pincode, formik.values.pincode)} disabled:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400`}
+                                    className={`${inputBase} ${fieldState(formik.touched.pincode, formik.errors.pincode, formik.values.pincode)} disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
                                 />
                                 <FieldError touched={formik.touched.pincode} error={formik.errors.pincode} />
                                 {formik.values.state && !formik.errors.pincode && formik.values.pincode.length === 6 && (
-                                    <span className="text-green-600 text-xs mt-1 block">✓ Pincode matches {formik.values.state}</span>
+                                    <p className="mt-1.5 text-xs text-emerald-600 flex items-center gap-1">
+                                        <CheckCircle2 size={12} />Pincode matches {formik.values.state}
+                                    </p>
                                 )}
                             </div>
 
+                            {/* Submit */}
                             <button
                                 type="submit"
                                 disabled={formik.isSubmitting}
-                                className="bg-primary text-white font-semibold px-4 py-3 rounded-xl hover:bg-primary-dark transition-colors mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="mt-1 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm
+                                    bg-gradient-to-r from-indigo-500 to-purple-600 text-white
+                                    hover:shadow-xl hover:shadow-indigo-200 hover:-translate-y-0.5 active:translate-y-0
+                                    transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                                    disabled:hover:shadow-none disabled:hover:translate-y-0"
                             >
-                                {formik.isSubmitting ? 'Saving...' : 'Save Profile'}
+                                {formik.isSubmitting
+                                    ? <><Loader2 size={16} className="animate-spin" />Saving…</>
+                                    : <><span>Save Profile</span><ArrowRight size={16} /></>
+                                }
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
+
             <Footer />
         </>
     );

@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, User, ImageOff, Package } from 'lucide-react';
+import { MapPin, User, ImageOff, Package, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+
+const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
+const Blobs  = () => (
+    <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div style={{ width: 500, height: 500, top: '-140px', left: '-140px', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+        <div style={{ width: 420, height: 420, bottom: '-100px', right: '-80px',  background: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
+    </div>
+);
 
 const ImagePlaceholder = () => (
     <div className="w-full h-44 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -36,20 +44,22 @@ const UserProfile = () => {
     }, [custom_id]);
 
     if (loading) return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen" style={pageBg}>
             <Navbar />
-            <p className="text-center text-gray-500 py-32">Loading...</p>
+            <div className="min-h-[calc(100vh-20rem)] flex items-center justify-center">
+                <Loader2 size={32} className="animate-spin text-indigo-400" />
+            </div>
             <Footer />
         </div>
     );
 
     if (notFound || !user) return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen" style={pageBg}>
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-32 text-center">
-                <h2 className="text-3xl font-bold mb-4">User not found</h2>
+                <h2 className="text-3xl font-bold mb-4 text-slate-800">User not found</h2>
                 <button
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-8 py-4 rounded-xl hover:scale-105 transition-all"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-8 py-4 rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-200"
                     onClick={() => navigate('/products')}
                 >
                     Browse Products
@@ -62,12 +72,13 @@ const UserProfile = () => {
     const location = [user.city, user.state].filter(Boolean).join(', ');
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen" style={pageBg}>
+            <Blobs />
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-16 animate-fade-in">
 
                 {/* Profile card */}
-                <div className="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl p-8 shadow-xl mb-16 flex items-center gap-6">
+                <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)] mb-16 flex items-center gap-6">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shrink-0">
                         <User size={40} className="text-white" />
                     </div>
@@ -102,7 +113,7 @@ const UserProfile = () => {
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+                                className="group bg-white/80 backdrop-blur-sm border border-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)]"
                                 onClick={() => navigate(`/p/${product.slug}`)}
                             >
                                 <div className="overflow-hidden">

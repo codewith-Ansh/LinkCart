@@ -15,6 +15,7 @@ import UserProfile from '../pages/UserProfile';
 import CompleteProfile from '../pages/CompleteProfile';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
+import AuthSuccess from '../pages/AuthSuccess';
 
 const AppRouter = () => {
     return (
@@ -23,6 +24,7 @@ const AppRouter = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/auth-success" element={<AuthSuccess />} />
                 <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />

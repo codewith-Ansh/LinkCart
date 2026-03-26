@@ -31,16 +31,21 @@ exports.getProfile = async (req, res) => {
     try {
         const { custom_id } = req.user;
 
+        // JOIN users so full_name + email are always returned alongside profile data
         const result = await pool.query(
-            "SELECT * FROM user_profiles WHERE user_id = $1",
+            `SELECT up.*, u.full_name, u.email
+             FROM users u
+             LEFT JOIN user_profiles up ON up.user_id = u.custom_id
+             WHERE u.custom_id = $1`,
             [custom_id]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Profile not found" });
+            return res.status(404).json({ error: "User not found" });
         }
 
-        res.json({ profile: result.rows[0] });
+        // Row exists (user found) even if profile fields are null (no profile row yet)
+        res.json({ profile: { user_id: custom_id, ...result.rows[0] } });
     } catch (error) {
         console.error("Get profile error:", error.message);
         res.status(500).json({ error: "Server error" });
