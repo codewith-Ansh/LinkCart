@@ -1,162 +1,261 @@
-const pool            = require("../config/db");
-const bcrypt          = require("bcrypt");
-const jwt             = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const pool = require("../config/db");
 const generateCustomId = require("../utils/generateCustomID");
-const sendOTPEmail    = require("../utils/emailService");
-const generateOTP     = require("../utils/otp");
+const generateOTP = require("../utils/otp");
+const sendEmail = require("../utils/sendEmail");
 
 const BCRYPT_ROUNDS = 12;
+const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const OTP_COOLDOWN_MS = 60 * 1000; // 60 seconds cooldown between OTP requests
+const OTP_MAX_ATTEMPTS = 5;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const otpStore = {};
 
-// ── Signup ──────────────────────────────────────────────────────────────────
+const buildFrontendUrl = (path, params = {}) => {
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const url = new URL(path, baseUrl);
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            url.searchParams.set(key, value);
+        }
+    });
+
+    return url.toString();
+};
+
+const generateToken = (user) =>
+    jwt.sign(
+        { custom_id: user.custom_id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+
+const getProfileRedirect = async (customId) => {
+    const profileResult = await pool.query(
+        "SELECT profile_completed FROM user_profiles WHERE user_id = $1",
+        [customId]
+    );
+
+    return (profileResult.rows.length === 0 || !profileResult.rows[0].profile_completed)
+        ? "/complete-profile"
+        : "/dashboard";
+};
+
 exports.signup = async (req, res) => {
     try {
         const { fullName, email, password } = req.body;
 
-        if (!fullName || !email || !password)
-            return res.status(400).json({ error: "All fields are required" });
+        if (!fullName || !email || !password) {
+            return res.status(400).json({ message: "All fields are required." });
+        }
 
-        if (fullName.trim().length < 2 || !/^[a-zA-Z\s]+$/.test(fullName))
-            return res.status(400).json({ error: "Full name must be at least 2 characters and contain only letters" });
+        if (fullName.trim().length < 2 || !/^[a-zA-Z\s]+$/.test(fullName)) {
+            return res.status(400).json({ message: "Full name must be at least 2 characters and contain only letters." });
+        }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email))
-            return res.status(400).json({ error: "Invalid email format" });
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format." });
+        }
 
-        if (password.length < 8)
-            return res.status(400).json({ error: "Password must be at least 8 characters" });
-        if (!/[A-Z]/.test(password))
-            return res.status(400).json({ error: "Password must contain at least one uppercase letter" });
-        if (!/[a-z]/.test(password))
-            return res.status(400).json({ error: "Password must contain at least one lowercase letter" });
-        if (!/[0-9]/.test(password))
-            return res.status(400).json({ error: "Password must contain at least one number" });
-        if (!/[!@#$%^&*]/.test(password))
-            return res.status(400).json({ error: "Password must contain at least one special character (!@#$%^&*)" });
+        if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
+            return res.status(400).json({ message: "Password must be strongly formatted (min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character)." });
+        }
 
+        const normalizedEmail = email.toLowerCase();
         const existingUser = await pool.query(
             "SELECT custom_id FROM users WHERE email = $1",
-            [email]
+            [normalizedEmail]
         );
-        if (existingUser.rows.length > 0)
-            return res.status(400).json({ error: "Email already registered" });
+
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({ message: "Email is already registered." });
+        }
 
         const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
-        const customId       = await generateCustomId(fullName);
+        const customId = await generateCustomId(fullName);
 
         await pool.query(
             "INSERT INTO users (custom_id, full_name, email, password) VALUES ($1, $2, $3, $4)",
-            [customId, fullName, email, hashedPassword]
+            [customId, fullName.trim(), normalizedEmail, hashedPassword]
         );
 
-        res.status(201).json({ message: "User registered successfully" });
+        console.log(`[Auth] User registered successfully: ${normalizedEmail}`);
+        return res.status(201).json({ message: "User registered successfully." });
     } catch (error) {
-        console.error("Signup error:", error.message);
-        res.status(500).json({ error: "Server error" });
+        console.error("[Auth Error] signup:", error.message);
+        return res.status(500).json({ message: "An internal server error occurred during signup." });
     }
 };
 
-// ── Login ───────────────────────────────────────────────────────────────────
-// Dummy hash used so bcrypt.compare always runs — prevents timing oracle
-const DUMMY_HASH = "$2b$12$dummyhashfortimingprotectiononlyXXXXXXXXXXXXXXXXXXXXXX";
+const DUMMY_HASH = "$2b$12$C6UzMDM.H6dfI/f/IKcEe.1QeWQ7NQWn0XGbkADVY6jwxKF1uHmIi";
 
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password)
-            return res.status(400).json({ error: "Email and password are required" });
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required." });
+        }
 
-        // Only select the columns we actually need — never return password hash to caller
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET environment variable is missing.");
+        }
+
+        const normalizedEmail = email.toLowerCase();
         const result = await pool.query(
             "SELECT custom_id, email, password FROM users WHERE email = $1",
-            [email]
+            [normalizedEmail]
         );
 
-        const user       = result.rows[0];
-        const hashToTest = user ? user.password : DUMMY_HASH;
-
-        // Always run bcrypt — prevents timing-based email enumeration
+        const user = result.rows[0];
+        const hashToTest = user?.password || DUMMY_HASH;
         const isMatch = await bcrypt.compare(password, hashToTest);
 
-        if (!user || !isMatch)
-            return res.status(400).json({ error: "Invalid credentials" });
+        if (!user || !isMatch) {
+            return res.status(400).json({ message: "Invalid email or password." });
+        }
 
-        const token = jwt.sign(
-            { custom_id: user.custom_id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
+        const token = generateToken(user);
+        const redirectTo = await getProfileRedirect(user.custom_id);
 
-        const profileResult = await pool.query(
-            "SELECT profile_completed FROM user_profiles WHERE user_id = $1",
-            [user.custom_id]
-        );
-
-        const redirectTo = (profileResult.rows.length === 0 || !profileResult.rows[0].profile_completed)
-            ? "/complete-profile"
-            : "/dashboard";
-
-        res.json({ message: "Login successful", token, customId: user.custom_id, redirectTo });
+        console.log(`[Auth] Login successful: ${normalizedEmail}`);
+        return res.json({
+            message: "Login successful.",
+            token,
+            customId: user.custom_id,
+            redirectTo,
+        });
     } catch (error) {
-        console.error("Login error:", error.message);
-        res.status(500).json({ error: "Server error" });
+        console.error("[Auth Error] login:", error.message);
+        return res.status(500).json({ message: "An internal server error occurred during login." });
     }
 };
-
-// ── OTP store (in-memory — acceptable for single-instance dev/staging) ──────
-const otpStore      = new Map();
-const emailRegexOtp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const OTP_MAX_ATTEMPTS = 5;
 
 exports.sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email || !emailRegexOtp.test(email))
-            return res.status(400).json({ error: "Invalid email address" });
+        if (!email || !emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email address." });
+        }
 
-        const otp = String(generateOTP());
-        otpStore.set(email, {
+        const normalizedEmail = email.toLowerCase();
+        const existingOtp = otpStore[normalizedEmail];
+
+        // Rate limit: User cannot request OTP more than once within 60 seconds
+        if (existingOtp && (Date.now() - existingOtp.lastRequested < OTP_COOLDOWN_MS)) {
+            const remainingTime = Math.ceil((OTP_COOLDOWN_MS - (Date.now() - existingOtp.lastRequested)) / 1000);
+            return res.status(429).json({ message: `Please wait ${remainingTime} seconds before requesting a new OTP.` });
+        }
+
+        const otp = generateOTP();
+        console.log(`[OTP] Generated for ${normalizedEmail}`);
+
+        otpStore[normalizedEmail] = {
             otp,
-            expiresAt: Date.now() + 5 * 60 * 1000,
+            expiresAt: Date.now() + OTP_EXPIRY_MS,
             attempts: 0,
-        });
+            lastRequested: Date.now(),
+        };
 
-        await sendOTPEmail(email, otp);
-        res.json({ message: "OTP sent successfully" });
+        console.log(`[OTP] Attempting to send email to: ${normalizedEmail}`);
+        await sendEmail({
+            to: normalizedEmail,
+            subject: "Your LinkCart verification code",
+            text: `Your LinkCart OTP is ${otp}. It expires in 5 minutes.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+                    <h2>Verify your email address</h2>
+                    <p>Use the OTP below to continue. Do not share this code with anyone.</p>
+                    <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${otp}</p>
+                    <p>This OTP expires in 5 minutes.</p>
+                </div>
+            `,
+        });
+        console.log(`[OTP] Email successfully sent to: ${normalizedEmail}`);
+
+        return res.json({ message: "OTP sent successfully." });
     } catch (error) {
-        console.error("sendOtp error:", error.message);
-        res.status(500).json({ error: "Failed to send OTP. Please try again." });
+        console.error("[OTP Error] sendOtp:", error.message);
+        return res.status(500).json({ message: "An error occurred while sending the OTP. Please try again later." });
     }
 };
 
-exports.verifyOtp = (req, res) => {
-    const { email, otp } = req.body;
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
 
-    if (!email || !otp)
-        return res.status(400).json({ error: "Email and OTP are required" });
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required." });
+        }
 
-    const data = otpStore.get(email);
+        const normalizedEmail = email.toLowerCase();
+        const otpEntry = otpStore[normalizedEmail];
 
-    if (!data)
-        return res.status(400).json({ error: "OTP not found. Please request a new one." });
+        if (!otpEntry) {
+            return res.status(400).json({ message: "OTP not found. Please request a new one." });
+        }
 
-    // Enforce attempt limit before checking anything else
-    if (data.attempts >= OTP_MAX_ATTEMPTS) {
-        otpStore.delete(email);
-        return res.status(429).json({ error: "Too many incorrect attempts. Please request a new OTP." });
+        if (otpEntry.attempts >= OTP_MAX_ATTEMPTS) {
+            delete otpStore[normalizedEmail];
+            return res.status(429).json({ message: "Too many incorrect attempts. Please request a new OTP." });
+        }
+
+        if (Date.now() > otpEntry.expiresAt) {
+            delete otpStore[normalizedEmail];
+            return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+        }
+
+        if (String(otpEntry.otp) !== String(otp)) {
+            otpEntry.attempts += 1;
+            return res.status(400).json({ message: "Incorrect OTP. Please try again." });
+        }
+
+        delete otpStore[normalizedEmail];
+        console.log(`[OTP] Verification successful for: ${normalizedEmail}`);
+        return res.json({ message: "OTP verified successfully." });
+    } catch (error) {
+        console.error("[OTP Error] verifyOtp:", error.message);
+        return res.status(500).json({ message: "An internal server error occurred during OTP verification." });
     }
+};
 
-    if (Date.now() > data.expiresAt) {
-        otpStore.delete(email);
-        return res.status(400).json({ error: "OTP has expired. Please request a new one." });
+exports.googleAuthStart = (req, res, next) => {
+    try {
+        console.log("[Google OAuth] Authentication started...");
+        return next();
+    } catch (error) {
+        console.error("[Google OAuth Error] start:", error.message);
+        return res.status(500).json({ message: "An error occurred while starting Google authentication." });
     }
+};
 
-    if (data.otp !== String(otp)) {
-        data.attempts += 1;
-        return res.status(400).json({ error: "Incorrect OTP. Please try again." });
+exports.googleAuthSuccess = async (req, res) => {
+    try {
+        const token = generateToken(req.user);
+        const redirectTo = await getProfileRedirect(req.user.custom_id);
+
+        console.log(`[Google OAuth] Success for custom_id: ${req.user.custom_id}`);
+        return res.redirect(buildFrontendUrl("/auth-success", {
+            token,
+            customId: req.user.custom_id,
+            redirectTo,
+        }));
+    } catch (error) {
+        console.error("[Google OAuth Error] success callback:", error.message);
+        return res.status(500).json({ message: "An error occurred during the Google authentication callback." });
     }
+};
 
-    otpStore.delete(email);
-    res.json({ message: "OTP verified successfully" });
+exports.googleAuthFailure = (req, res) => {
+    try {
+        console.warn("[Google OAuth] Authentication failed or cancelled by user.");
+        return res.redirect(buildFrontendUrl("/login", { error: "google_failed" }));
+    } catch (error) {
+        console.error("[Google OAuth Error] failure callback:", error.message);
+        return res.status(500).json({ message: "An error occurred while handling Google authentication failure." });
+    }
 };
