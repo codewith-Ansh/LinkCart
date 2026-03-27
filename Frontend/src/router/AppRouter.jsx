@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import Home from '../pages/Home';
 import Products from '../pages/Products';
 import Account from '../pages/Account';
@@ -17,14 +18,49 @@ import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 import AuthSuccess from '../pages/AuthSuccess';
 
+// Decode token and check expiry
+const getValidRole = (token) => {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        if (payload.exp * 1000 < Date.now()) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('customId');
+            return null;
+        }
+
+        return payload.role || null;
+    } catch {
+        return null;
+    }
+};
+
+// Protect admin route
+const AdminRoute = ({ children }) => {
+    const token = localStorage.getItem('token');
+    if (!token) return <Navigate to="/login" replace />;
+
+    const role = getValidRole(token);
+
+    if (!role) return <Navigate to="/login" replace />;
+    if (role !== 'admin') return <Navigate to="/" replace />;
+
+    return children;
+};
+
 const AppRouter = () => {
     return (
         <Router>
             <Routes>
+
+                {/* Public routes */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/auth-success" element={<AuthSuccess />} />
+
+                {/* User routes */}
                 <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />
@@ -33,10 +69,20 @@ const AppRouter = () => {
                 <Route path="/edit-listing/:id" element={<EditListing />} />
                 <Route path="/post-ad" element={<PostAd />} />
                 <Route path="/seller/:id" element={<SellerProfile />} />
-                <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/product/:slug" element={<ProductDetail />} />
                 <Route path="/p/:slug" element={<PublicProductPage />} />
                 <Route path="/user/:custom_id" element={<UserProfile />} />
+
+                {/* Admin route (protected) */}
+                <Route
+                    path="/admin"
+                    element={
+                        <AdminRoute>
+                            <AdminPanel />
+                        </AdminRoute>
+                    }
+                />
+
             </Routes>
         </Router>
     );
