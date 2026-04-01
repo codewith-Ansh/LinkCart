@@ -13,6 +13,8 @@ import AdminPanel from '../pages/AdminPanel';
 import ProductDetail from '../pages/ProductDetail';
 import PublicProductPage from '../pages/PublicProductPage';
 import UserProfile from '../pages/UserProfile';
+import InterestsDashboard from '../pages/InterestsDashboard';
+import MyRequestsDashboard from '../pages/MyRequestsDashboard';
 import CompleteProfile from '../pages/CompleteProfile';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
@@ -65,6 +67,8 @@ const AppRouter = () => {
                 <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />
+                <Route path="/dashboard/interests" element={<InterestsDashboard />} />
+                <Route path="/dashboard/my-requests" element={<MyRequestsDashboard />} />
                 <Route path="/explore" element={<VisitOthers />} />
                 <Route path="/my-listings" element={<MyListings />} />
                 <Route path="/edit-listing/:id" element={<EditListing />} />

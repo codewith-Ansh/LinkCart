@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
 import UserAvatar from '../components/UserAvatar';
+import ProductStatusBadge from '../components/ProductStatusBadge';
 
 const ImagePlaceholder = () => (
     <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -87,7 +88,7 @@ const Products = () => {
                                                 {product.seller_name || product.user_id}
                                             </span>
                                         </button>
-                                        <span className="text-xs bg-indigo-50 text-indigo-600 font-bold px-2 py-1 rounded-lg">Public</span>
+                                        <ProductStatusBadge status={product.status} />
                                     </div>
                                 </div>
                             </div>

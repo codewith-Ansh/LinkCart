@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
+import ProductStatusBadge from '../components/ProductStatusBadge';
+import { useToast } from '../context/ToastContext';
 
 const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
 const Blobs  = () => (
@@ -27,6 +29,8 @@ const MyListings = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [copiedId, setCopiedId] = useState(null);
+    const [markingSoldId, setMarkingSoldId] = useState('');
+    const toast = useToast();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -49,6 +53,43 @@ const MyListings = () => {
         navigator.clipboard.writeText(`${window.location.origin}/p/${slug}`);
         setCopiedId(slug);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleMarkSold = async (event, productId) => {
+        event.stopPropagation();
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        setMarkingSoldId(productId);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/products/${productId}/sold`, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to mark product as sold.');
+            }
+
+            setListings((prev) =>
+                prev.map((listing) =>
+                    listing.id === productId ? { ...listing, status: 'sold' } : listing
+                )
+            );
+            toast.success('Product marked as sold.');
+        } catch (fetchError) {
+            toast.error(fetchError.message || 'Failed to mark product as sold.');
+        } finally {
+            setMarkingSoldId('');
+        }
     };
 
     return (
@@ -107,9 +148,12 @@ const MyListings = () => {
                                     ) : (
                                         <ImagePlaceholder />
                                     )}
-                                    <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow ${listing.visibility === 'private' ? 'bg-slate-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}>
-                                        {listing.visibility === 'private' ? 'Private' : 'Public'}
-                                    </span>
+                                    <div className="absolute right-3 top-3 flex gap-2">
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow ${listing.visibility === 'private' ? 'bg-slate-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}>
+                                            {listing.visibility === 'private' ? 'Private' : 'Public'}
+                                        </span>
+                                        <ProductStatusBadge status={listing.status} className="bg-white/95" />
+                                    </div>
                                 </div>
                                 <div className="p-5 flex flex-col flex-1">
                                     <h3 className="font-bold text-lg mb-1 truncate">{listing.title}</h3>
@@ -133,6 +177,15 @@ const MyListings = () => {
                                         <Copy size={14} />
                                         {copiedId === listing.slug ? 'Copied!' : 'Copy Link'}
                                     </button>
+                                    {listing.status !== 'sold' && (
+                                        <button
+                                            onClick={(event) => handleMarkSold(event, listing.id)}
+                                            disabled={markingSoldId === listing.id}
+                                            className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {markingSoldId === listing.id ? <Loader2 size={14} className="animate-spin" /> : 'Mark as Sold'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             );

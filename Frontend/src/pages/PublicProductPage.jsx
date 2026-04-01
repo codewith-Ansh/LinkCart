@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, ImageOff, Copy, ExternalLink, Flag, X } from 'lucide-react';
+import { MapPin, ImageOff, Copy, ExternalLink, Flag, Loader2, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
 import { useToast } from '../context/ToastContext';
 import UserAvatar from '../components/UserAvatar';
+import InterestModal from '../components/InterestModal';
+import ProductStatusBadge from '../components/ProductStatusBadge';
+import { useAppContext } from '../context/AppContext';
 
 const PublicProductPage = () => {
     const { slug } = useParams();
@@ -16,15 +19,23 @@ const PublicProductPage = () => {
     const [notFound, setNotFound] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [showInterestModal, setShowInterestModal] = useState(false);
+    const [interestSubmitting, setInterestSubmitting] = useState(false);
+    const [interestSent, setInterestSent] = useState(false);
+    const [interestMessage, setInterestMessage] = useState('');
     const [reportReason, setReportReason] = useState('');
     const [reportDescription, setReportDescription] = useState('');
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const toast = useToast();
+    const { currentUser, isLoggedIn, refreshSellerInterestCount } = useAppContext();
 
     useEffect(() => {
         fetch(`${API_BASE}/api/products/${slug}`)
             .then((res) => {
-                if (res.status === 404) { setNotFound(true); return null; }
+                if (res.status === 404) {
+                    setNotFound(true);
+                    return null;
+                }
                 return res.json();
             })
             .then((data) => { if (data) setProduct(data); })
@@ -39,6 +50,53 @@ const PublicProductPage = () => {
     };
 
     const imageSrc = getProductImageSrc(product);
+    const isOwner = currentUser?.custom_id && product?.user_id === currentUser.custom_id;
+    const isSold = product?.status === 'sold';
+    const isInDeal = product?.status === 'in_progress';
+
+    const handleInterestConfirm = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        setInterestSubmitting(true);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/interests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    productId: product.id,
+                    message: interestMessage,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send interest.');
+            }
+
+            setInterestSent(true);
+            setShowInterestModal(false);
+            setInterestMessage('');
+            toast.success('Interest sent successfully.');
+            refreshSellerInterestCount();
+        } catch (error) {
+            if (error.message.toLowerCase().includes('already shown interest')) {
+                setInterestSent(true);
+                setShowInterestModal(false);
+            }
+            toast.error(error.message || 'Failed to send interest.');
+        } finally {
+            setInterestSubmitting(false);
+        }
+    };
 
     const handleReportSubmit = async (e) => {
         if (e) e.preventDefault();
@@ -61,7 +119,7 @@ const PublicProductPage = () => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    product_id: product.id || product._id || slug,
+                    product_id: product.id || slug,
                     reported_by: localStorage.getItem('customId') || 'unknown',
                     reason: `[${reportReason}] ${reportDescription}`,
                 }),
@@ -84,21 +142,23 @@ const PublicProductPage = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-gray-50">
             <Navbar />
-            <p className="py-32 text-center text-gray-500">Loading...</p>
+            <div className="flex justify-center py-32">
+                <Loader2 size={30} className="animate-spin text-purple-600" />
+            </div>
             <Footer />
         </div>
     );
 
     if (notFound || !product) return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-gray-50">
             <Navbar />
             <div className="w-full px-6 py-32 text-center md:px-12 lg:px-20">
-                <h2 className="mb-4 text-3xl font-bold">Product not found</h2>
-                <p className="mb-8 text-gray-500">This link may have been removed or doesn't exist.</p>
+                <h2 className="mb-4 text-3xl font-bold text-gray-900">Product not found</h2>
+                <p className="mb-8 text-gray-500">This link may have been removed or does not exist.</p>
                 <button
-                    className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 font-bold text-white transition-all hover:scale-105"
+                    className="rounded-xl bg-purple-600 px-8 py-4 font-bold text-white transition-colors hover:bg-purple-700"
                     onClick={() => navigate('/products')}
                 >
                     Browse Products
@@ -109,22 +169,22 @@ const PublicProductPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-gray-50">
             <Navbar />
             <div className="w-full px-6 py-16 md:px-12 lg:px-20">
                 <div className="mx-auto max-w-5xl">
                     {showSuccessMessage && (
-                        <div className="mb-8 rounded-xl border border-green-200 bg-green-50 px-6 py-4 text-center font-semibold text-green-600 transition-all">
+                        <div className="mb-8 rounded-xl border border-purple-100 bg-purple-50 px-6 py-4 text-center font-semibold text-purple-700">
                             Report submitted successfully
                         </div>
                     )}
 
-                    <div className="mb-10 flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                        <ExternalLink size={16} className="shrink-0 text-indigo-500" />
-                        <span className="flex-1 truncate text-sm text-slate-500">{window.location.href}</span>
+                    <div className="mb-10 flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+                        <ExternalLink size={16} className="shrink-0 text-purple-600" />
+                        <span className="flex-1 truncate text-sm text-gray-500">{window.location.href}</span>
                         <button
                             onClick={handleCopy}
-                            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-xs font-bold text-white transition-all hover:bg-indigo-600"
+                            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-purple-700"
                         >
                             <Copy size={13} />
                             {copied ? 'Copied!' : 'Copy Link'}
@@ -132,34 +192,32 @@ const PublicProductPage = () => {
                     </div>
 
                     <div className="mb-10 grid gap-10 md:grid-cols-2">
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                        <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
                             {imageSrc ? (
                                 <img src={imageSrc} alt={product.title} className="h-[420px] w-full object-cover" />
                             ) : (
-                                <div className="flex h-[420px] w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-100 to-indigo-50 text-slate-400">
+                                <div className="flex h-[420px] w-full flex-col items-center justify-center gap-3 bg-gray-50 text-slate-400">
                                     <ImageOff size={56} />
                                     <span className="text-base font-medium">No Image Available</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-                            <div className="mb-4 flex items-start justify-between">
-                                <h1 className="text-3xl font-extrabold leading-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                        <div className="flex flex-col rounded-xl border border-gray-100 bg-white p-8 shadow-sm">
+                            <div className="mb-4 flex items-start justify-between gap-4">
+                                <h1 className="text-3xl font-bold leading-tight text-gray-900" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                                     {product.title}
                                 </h1>
-                                <span className={`ml-3 shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white ${product.visibility === 'private' ? 'bg-slate-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}>
-                                    {product.visibility === 'private' ? 'Private' : 'Public'}
-                                </span>
+                                <ProductStatusBadge status={product.status} />
                             </div>
 
-                            <p className="mb-5 text-4xl font-extrabold text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text">
+                            <p className="mb-5 text-4xl font-extrabold text-gray-900">
                                 ${product.price}
                             </p>
 
                             {product.location && (
                                 <div className="mb-5 flex items-center gap-2 text-gray-500">
-                                    <MapPin size={16} />
+                                    <MapPin size={16} className="text-purple-600" />
                                     <span className="font-medium">{product.location}</span>
                                 </div>
                             )}
@@ -169,40 +227,76 @@ const PublicProductPage = () => {
                             )}
 
                             <div
-                                className="mt-auto flex cursor-pointer items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 p-4 transition-all hover:shadow-md"
+                                className="mt-auto flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 transition-colors hover:bg-purple-50"
                                 onClick={() => navigate(`/user/${product.user_id}`)}
                             >
                                 <UserAvatar user={product} size="sm" className="h-10 w-10 shrink-0 text-xs" />
                                 <div>
-                                    <p className="mb-0.5 text-xs text-gray-400">Created by</p>
-                                    <p className="text-sm font-bold text-indigo-700">{product.seller_name || product.user_id}</p>
+                                    <p className="mb-0.5 text-xs text-gray-400">Posted by</p>
+                                    <p className="text-sm font-semibold text-gray-800">{product.seller_name || product.user_id}</p>
                                 </div>
-                                <span className="ml-auto text-xs font-medium text-indigo-400">View Profile</span>
+                                <span className="ml-auto text-xs font-medium text-purple-600">View Profile</span>
                             </div>
 
-                            <button className="mt-4 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 font-bold text-white transition-all hover:scale-105 hover:shadow-xl">
-                                Contact Seller
+                            <button
+                                type="button"
+                                disabled={!isLoggedIn || isOwner || isSold || interestSent}
+                                onClick={() => setShowInterestModal(true)}
+                                className="mt-4 w-full rounded-xl bg-purple-600 px-6 py-4 font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
+                            >
+                                {isOwner
+                                    ? 'Your Listing'
+                                    : isSold
+                                        ? 'Sold'
+                                        : interestSent
+                                            ? 'Interest Sent'
+                                            : isInDeal
+                                                ? "I'm Interested"
+                                                : "I'm Interested"}
                             </button>
-                            <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 px-6 py-4 font-bold text-white transition-all hover:scale-105 hover:shadow-xl" onClick={() => setShowReportModal(true)}>
-                                <Flag size={18} /> Report
+
+                            {!isLoggedIn && (
+                                <p className="mt-3 text-sm text-gray-500">Log in to express interest in this product.</p>
+                            )}
+
+                            <button
+                                type="button"
+                                className="mt-3 rounded-xl border border-gray-200 bg-white px-6 py-4 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                                onClick={() => setShowReportModal(true)}
+                            >
+                                Report Listing
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <InterestModal
+                open={showInterestModal}
+                message={interestMessage}
+                submitting={interestSubmitting}
+                onClose={() => {
+                    setShowInterestModal(false);
+                    if (!interestSubmitting) {
+                        setInterestMessage('');
+                    }
+                }}
+                onConfirm={handleInterestConfirm}
+                onMessageChange={setInterestMessage}
+            />
+
             {showReportModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6" onClick={() => setShowReportModal(false)}>
-                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-slate-200 p-6">
-                            <h2 className="text-2xl font-bold" style={{ fontFamily: 'Clash Display, sans-serif' }}>Report Listing</h2>
-                            <button onClick={() => setShowReportModal(false)} className="text-gray-500 transition-colors hover:text-gray-700"><X size={24} /></button>
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-gray-100 p-6">
+                            <h2 className="text-xl font-semibold text-gray-900">Report Listing</h2>
+                            <button onClick={() => setShowReportModal(false)} className="text-gray-500 transition-colors hover:text-gray-700"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleReportSubmit}>
                             <div className="space-y-6 p-6">
                                 <div>
-                                    <label className="mb-3 block text-sm font-bold">Reason</label>
-                                    <select className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={reportReason} onChange={(e) => setReportReason(e.target.value)} required>
+                                    <label className="mb-3 block text-sm font-semibold text-gray-700">Reason</label>
+                                    <select className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200" value={reportReason} onChange={(e) => setReportReason(e.target.value)} required>
                                         <option value="">Select a category</option>
                                         <option value="Spam">Spam</option>
                                         <option value="Fake Product">Fake Product</option>
@@ -211,13 +305,13 @@ const PublicProductPage = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="mb-3 block text-sm font-bold">Description</label>
-                                    <textarea className="w-full resize-vertical rounded-xl border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Describe the issue" rows="4" value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} required />
+                                    <label className="mb-3 block text-sm font-semibold text-gray-700">Description</label>
+                                    <textarea className="w-full resize-vertical rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200" placeholder="Describe the issue" rows="4" value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} required />
                                 </div>
                             </div>
-                            <div className="flex gap-3 border-t border-slate-200 p-6">
-                                <button type="button" className="flex-1 rounded-xl border-2 border-slate-300 px-6 py-3 font-semibold text-gray-700 transition-all hover:bg-slate-50" onClick={() => setShowReportModal(false)}>Cancel</button>
-                                <button type="submit" className="flex-1 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 px-6 py-3 font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-xl">Submit Report</button>
+                            <div className="flex gap-3 border-t border-gray-100 p-6">
+                                <button type="button" className="flex-1 rounded-xl border border-gray-200 px-6 py-3 font-semibold text-gray-600 transition-colors hover:bg-gray-50" onClick={() => setShowReportModal(false)}>Cancel</button>
+                                <button type="submit" className="flex-1 rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">Submit</button>
                             </div>
                         </form>
                     </div>

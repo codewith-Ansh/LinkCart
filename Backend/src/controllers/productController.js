@@ -19,12 +19,9 @@ exports.createProduct = async (req, res) => {
 
         const userId = req.user.custom_id;
         const slug = generateSlug();
-        
-        console.log("createProduct req.file:", req.file);
         const imageUrl = req.file ? req.file.path : null;
 
         if (req.file && !imageUrl) {
-            console.error("createProduct upload error: req.file exists but path is missing", req.file);
             return res.status(400).json({ error: "Image upload failed" });
         }
 
@@ -49,7 +46,6 @@ exports.createProduct = async (req, res) => {
             message: "Product link created successfully",
             product: result.rows[0],
         });
-
     } catch (error) {
         console.error("createProduct error:", error.message);
         res.status(500).json({ error: "Server error" });
@@ -61,12 +57,14 @@ exports.getMyProducts = async (req, res) => {
         const userId = req.user.custom_id;
 
         const result = await db.query(
-            "SELECT * FROM products WHERE user_id = $1 ORDER BY created_at DESC",
+            `SELECT *
+             FROM products
+             WHERE user_id = $1
+             ORDER BY created_at DESC`,
             [userId]
         );
 
         res.json(result.rows);
-
     } catch (error) {
         console.error("getMyProducts error:", error.message);
         res.status(500).json({ error: "Server error" });
@@ -87,7 +85,6 @@ exports.getPublicProducts = async (req, res) => {
         );
 
         res.json(result.rows);
-
     } catch (error) {
         console.error("getPublicProducts error:", error.message);
         res.status(500).json({ error: "Server error" });
@@ -113,9 +110,32 @@ exports.getProductBySlug = async (req, res) => {
             return res.status(404).json({ error: "Product not found" });
 
         res.json(result.rows[0]);
-
     } catch (error) {
         console.error("getProductBySlug error:", error.message);
         res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.markAsSold = async (req, res) => {
+    const productId = req.params.id;
+    const userId = req.user.custom_id;
+
+    try {
+        const result = await db.query(
+            `UPDATE products
+             SET status = 'sold'
+             WHERE id = $1 AND user_id = $2
+             RETURNING id, status`,
+            [productId, userId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Product not found or unauthorized." });
+        }
+
+        res.json({ message: "Product marked as sold.", product: result.rows[0] });
+    } catch (error) {
+        console.error("markAsSold error:", error.message);
+        res.status(500).json({ error: "Failed to update product." });
     }
 };

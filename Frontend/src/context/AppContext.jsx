@@ -8,6 +8,7 @@ export const AppProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
     const [currentUser, setCurrentUser] = useState(null);
     const [profileLoading, setProfileLoading] = useState(() => !!localStorage.getItem('token'));
+    const [sellerInterestCount, setSellerInterestCount] = useState(0);
 
     const toggleTheme = () => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -44,6 +45,33 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const refreshSellerInterestCount = async () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            setSellerInterestCount(0);
+            return 0;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/api/interests/seller`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch seller interests');
+            }
+
+            const data = await response.json();
+            const nextCount = Array.isArray(data) ? data.filter((item) => item.status === 'pending').length : 0;
+            setSellerInterestCount(nextCount);
+            return nextCount;
+        } catch {
+            setSellerInterestCount(0);
+            return 0;
+        }
+    };
+
     useEffect(() => {
         document.body.className = theme;
     }, [theme]);
@@ -55,9 +83,11 @@ export const AppProvider = ({ children }) => {
 
             if (loggedIn) {
                 refreshCurrentUser();
+                refreshSellerInterestCount();
             } else {
                 setCurrentUser(null);
                 setProfileLoading(false);
+                setSellerInterestCount(0);
             }
         };
 
@@ -68,14 +98,17 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         if (localStorage.getItem('token')) {
             refreshCurrentUser();
+            refreshSellerInterestCount();
         } else {
             setProfileLoading(false);
+            setSellerInterestCount(0);
         }
     }, []);
 
     const login = async () => {
         setIsLoggedIn(true);
         await refreshCurrentUser();
+        await refreshSellerInterestCount();
     };
 
     const updateCurrentUser = (nextUser) => {
@@ -89,6 +122,7 @@ export const AppProvider = ({ children }) => {
         setIsLoggedIn(false);
         setCurrentUser(null);
         setProfileLoading(false);
+        setSellerInterestCount(0);
     };
 
     return (
@@ -99,7 +133,9 @@ export const AppProvider = ({ children }) => {
                 isLoggedIn,
                 currentUser,
                 profileLoading,
+                sellerInterestCount,
                 refreshCurrentUser,
+                refreshSellerInterestCount,
                 updateCurrentUser,
                 login,
                 logout,

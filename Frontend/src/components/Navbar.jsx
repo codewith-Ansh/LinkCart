@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Plus, User, LogOut, LayoutList } from 'lucide-react';
+import { Bell, Menu, X, Plus, User, LogOut, LayoutList } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import UserAvatar from './UserAvatar';
 import { getDisplayName } from '../utils/profile';
@@ -8,7 +8,7 @@ import { getDisplayName } from '../utils/profile';
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const { isLoggedIn, logout, currentUser } = useAppContext();
+    const { isLoggedIn, logout, currentUser, sellerInterestCount } = useAppContext();
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
 
@@ -54,6 +54,17 @@ const Navbar = () => {
                     ) : (
                         <>
                             <Link to="/my-listings" className={navLink}>My Listings<span className={underline}></span></Link>
+                            <Link to="/dashboard/interests" className="relative text-slate-700 font-medium hover:text-indigo-600 transition-colors duration-200">
+                                <span className="inline-flex items-center gap-2">
+                                    <Bell size={16} />
+                                    <span>Interests</span>
+                                </span>
+                                {sellerInterestCount > 0 && (
+                                    <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-purple-600 px-1.5 py-0.5 text-xs font-bold text-white">
+                                        {sellerInterestCount}
+                                    </span>
+                                )}
+                            </Link>
                             <Link to="/post-ad" className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold px-5 py-2.5 rounded-xl hover:scale-105 hover:shadow-lg transition-all duration-300">
                                 <Plus size={16} />Create Link
                             </Link>
@@ -114,6 +125,9 @@ const Navbar = () => {
                     ) : (
                         <>
                             <Link to="/my-listings" className="text-slate-700 font-medium p-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" onClick={() => setIsMenuOpen(false)}>My Listings</Link>
+                            <Link to="/dashboard/interests" className="text-slate-700 font-medium p-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                                New Interests {sellerInterestCount > 0 ? `(${sellerInterestCount})` : ''}
+                            </Link>
                             <Link to="/account" className="text-slate-700 font-medium p-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" onClick={() => setIsMenuOpen(false)}>My Profile</Link>
                             <Link to="/post-ad" className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold p-3 rounded-xl hover:scale-105 transition-all" onClick={() => setIsMenuOpen(false)}><Plus size={16} />Create Link</Link>
                             <button onClick={handleLogout} className="flex items-center justify-center gap-2 text-red-500 font-medium p-3 rounded-lg hover:bg-red-50 transition-colors"><LogOut size={16} />Logout</button>
