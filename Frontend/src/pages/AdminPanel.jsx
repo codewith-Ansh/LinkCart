@@ -19,6 +19,10 @@ const AdminPanel = () => {
         totalProducts: 0,
         totalReports: 0
     });
+    
+    const [selectedReport, setSelectedReport] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalLoading, setModalLoading] = useState(false);
 
     const navigate = useNavigate();
     const toast = useToast();
@@ -193,6 +197,32 @@ const AdminPanel = () => {
             toast.error('Error deleting report');
         } finally {
             setActionLoadingId(null);
+        }
+    };
+
+    const fetchReportDetails = async (reportId) => {
+        setIsModalOpen(true);
+        setModalLoading(true);
+        setSelectedReport(null);
+        const token = localStorage.getItem('token');
+        
+        try {
+            const res = await fetch(`${API_BASE}/api/reports/${reportId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSelectedReport(data);
+            } else {
+                toast.error("Failed to load report details.");
+                setIsModalOpen(false);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Network error loading report details.");
+            setIsModalOpen(false);
+        } finally {
+            setModalLoading(false);
         }
     };
 
@@ -425,7 +455,13 @@ const AdminPanel = () => {
                                                     <td className="py-4 px-6 text-gray-500 text-sm">
                                                         {formattedDate}
                                                     </td>
-                                                    <td className="py-4 px-6 text-right space-x-2 flex justify-end">
+                                                    <td className="py-4 px-6 text-right space-x-2 flex justify-end items-center">
+                                                        <button 
+                                                            onClick={() => fetchReportDetails(r.id)}
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                                        >
+                                                            View
+                                                        </button>
                                                         <button 
                                                             onClick={() => handleUpdateReportStatus(r.id, 'resolved')}
                                                             disabled={r.status === 'resolved' || r.status === 'rejected' || actionLoadingId === r.id}
@@ -470,6 +506,151 @@ const AdminPanel = () => {
                     </div>
                 )}
             </main>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/80">
+                            <h3 className="text-xl font-black text-gray-900 tracking-tight">Report Details</h3>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        {/* Body */}
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {modalLoading ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <div className="w-8 h-8 border-4 border-[#8b5cf6] border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            ) : selectedReport ? (
+                                <div className="space-y-8 animate-in fade-in duration-300">
+                                    {/* Status Section */}
+                                    <div className="bg-amber-50 rounded-xl p-5 border border-amber-100">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div>
+                                                <h4 className="text-sm font-bold text-amber-900 uppercase tracking-wider mb-1">Reason for Report</h4>
+                                                <p className="text-amber-800 text-base font-medium">{selectedReport.report_reason}</p>
+                                            </div>
+                                            <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
+                                                selectedReport.report_status?.toLowerCase() === 'pending' ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-800'
+                                            }`}>
+                                                {selectedReport.report_status || 'Pending'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        {/* Product Info */}
+                                        <div className="space-y-5">
+                                            <h4 className="text-lg font-black tracking-tight text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                                <Package size={20} className="text-[#8b5cf6]" /> Product Details
+                                            </h4>
+                                            {selectedReport.product_id ? (
+                                                <div className="space-y-4">
+                                                    {selectedReport.product_image ? (
+                                                        <div className="w-full h-48 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 shadow-inner">
+                                                            <img 
+                                                                src={selectedReport.product_image.startsWith('http') ? selectedReport.product_image : `${API_BASE}/${selectedReport.product_image.replace(/\\/g, '/')}`} 
+                                                                alt={selectedReport.product_title}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x300?text=No+Image'; }}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-full h-48 rounded-xl bg-gray-50 flex flex-col items-center justify-center border border-dashed border-gray-200 text-gray-400">
+                                                            <Package size={32} className="mb-2 opacity-50" />
+                                                            <span className="text-sm font-medium">No Image Available</span>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div>
+                                                        <h5 className="font-bold text-gray-900 text-lg">{selectedReport.product_title}</h5>
+                                                        <p className="font-bold text-[#10b981] mt-1">${selectedReport.product_price}</p>
+                                                        <p className="text-gray-600 mt-2 text-sm line-clamp-3">{selectedReport.product_description}</p>
+                                                        <p className="text-gray-400 text-xs mt-2 font-mono">ID: {selectedReport.product_id}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium flex items-start gap-3">
+                                                    <Flag className="shrink-0 mt-0.5" size={18} />
+                                                    This product has been deleted or removed from the system.
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Users Info */}
+                                        <div className="space-y-6">
+                                            <div>
+                                                <h4 className="text-lg font-black tracking-tight text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
+                                                    <Users size={20} className="text-blue-500" /> Reporter Details
+                                                </h4>
+                                                <div className="mt-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                                                    <p className="text-sm text-gray-500 font-medium">Name</p>
+                                                    <p className="font-bold text-gray-900 mb-3">{selectedReport.reporter_name || 'Unknown User'}</p>
+                                                    <p className="text-sm text-gray-500 font-medium">Email</p>
+                                                    <p className="font-medium text-gray-800">{selectedReport.reporter_email || 'N/A'}</p>
+                                                </div>
+                                            </div>
+
+                                            {selectedReport.product_id && (
+                                                <div>
+                                                    <h4 className="text-lg font-black tracking-tight text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2 mt-2">
+                                                        <Users size={20} className="text-emerald-500" /> Product Owner
+                                                    </h4>
+                                                    <div className="mt-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                                                        <p className="text-sm text-gray-500 font-medium">Name</p>
+                                                        <p className="font-bold text-gray-900 mb-3">{selectedReport.owner_name || 'Unknown User'}</p>
+                                                        <p className="text-sm text-gray-500 font-medium">Email</p>
+                                                        <p className="font-medium text-gray-800">{selectedReport.owner_email || 'N/A'}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-500 font-medium">
+                                    Report data not found.
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Footer Actions */}
+                        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/80 flex justify-end gap-3">
+                            <button 
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+                            >
+                                Close
+                            </button>
+                            {selectedReport && selectedReport.report_status !== 'resolved' && selectedReport.report_status !== 'rejected' && (
+                                <>
+                                    <button 
+                                        onClick={async () => {
+                                            await handleUpdateReportStatus(selectedReport.report_id, 'rejected');
+                                            setIsModalOpen(false);
+                                        }}
+                                        className="px-5 py-2.5 rounded-xl text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-colors"
+                                    >
+                                        Reject Report
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            await handleUpdateReportStatus(selectedReport.report_id, 'resolved');
+                                            setIsModalOpen(false);
+                                        }}
+                                        className="px-5 py-2.5 rounded-xl text-sm font-bold bg-[#10b981] hover:bg-emerald-600 text-white shadow-sm transition-colors"
+                                    >
+                                        Approve (Remove Product)
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

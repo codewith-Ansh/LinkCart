@@ -63,6 +63,43 @@ const getAllReports = async (req, res) => {
     }
 };
 
+const getReportDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const query = `
+            SELECT 
+                r.id AS report_id,
+                r.reason AS report_reason,
+                r.status AS report_status,
+                r.created_at AS report_date,
+                reporter.full_name AS reporter_name,
+                reporter.email AS reporter_email,
+                p.id AS product_id,
+                p.title AS product_title,
+                p.description AS product_description,
+                p.price AS product_price,
+                p.image AS product_image,
+                owner.full_name AS owner_name,
+                owner.email AS owner_email
+            FROM reports r
+            LEFT JOIN products p ON r.product_id = p.id
+            LEFT JOIN users reporter ON r.reported_by = reporter.custom_id
+            LEFT JOIN users owner ON p.user_id = owner.custom_id
+            WHERE r.id = $1
+        `;
+        const result = await pool.query(query, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Report not found" });
+        }
+
+        return res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching report details:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 const updateReportStatus = async (req, res) => {
     const client = await pool.connect();
     try {
@@ -136,6 +173,7 @@ const deleteReport = async (req, res) => {
 module.exports = {
     createReport,
     getAllReports,
+    getReportDetails,
     updateReportStatus,
     deleteReport
 };

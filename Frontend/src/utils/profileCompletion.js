@@ -2,7 +2,8 @@ export const REQUIRED_PROFILE_FIELDS = ['phoneNumber', 'email', 'location'];
 
 const getTrimmedValue = (value) => (typeof value === 'string' ? value.trim() : '');
 
-const getLocationValue = (user = {}) => {
+const getLocationValue = (user) => {
+    user = user || {};
     const explicitLocation = getTrimmedValue(user.location);
 
     if (explicitLocation) {
@@ -15,7 +16,8 @@ const getLocationValue = (user = {}) => {
         .join(', ');
 };
 
-export const getProfileCompletionDetails = (user = {}) => {
+export const getProfileCompletionDetails = (user) => {
+    user = user || {};
     const normalizedProfile = {
         phoneNumber: getTrimmedValue(user.phoneNumber || user.phone),
         email: getTrimmedValue(user.email),
