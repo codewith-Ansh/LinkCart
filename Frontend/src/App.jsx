@@ -1,12 +1,14 @@
-import React from 'react';
 import { AppProvider } from './context/AppContext';
+import { ToastProvider } from './context/ToastContext';
 import AppRouter from './router/AppRouter';
 import './App.css';
 
 function App() {
   return (
     <AppProvider>
-      <AppRouter />
+      <ToastProvider>
+        <AppRouter />
+      </ToastProvider>
     </AppProvider>
   );
 }

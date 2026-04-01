@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { signupSchema } from '../utils/validationSchemas';
 import GoogleButton from '../components/GoogleButton';
 import API_BASE from '../utils/api';
+import { useToast } from '../context/ToastContext';
 
 /* ─── field border/ring state ─────────────────────────────────────────────── */
 const fieldState = (touched, error, value) => {
@@ -40,6 +41,7 @@ const Signup = () => {
     const [otpLoading, setOtpLoading]     = useState(false);
     const [otpSuccess, setOtpSuccess]     = useState(false);   // "OTP sent" toast state
     const navigate = useNavigate();
+    const toast = useToast();
 
     /* ── formik (logic unchanged) ── */
     const formik = useFormik({
@@ -60,7 +62,7 @@ const Signup = () => {
                 });
                 const data = await response.json();
                 if (!response.ok) { setServerError(data.error || 'Signup failed'); return; }
-                alert('Registration successful! Redirecting to login...');
+                toast.success('Registration successful! Redirecting to login...');
                 navigate('/login');
             } catch {
                 setServerError('Server error. Please try again later.');

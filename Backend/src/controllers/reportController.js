@@ -5,8 +5,8 @@ const createReport = async (req, res) => {
         const { product_id, reason } = req.body;
         const reported_by = req.user.custom_id; // Added by authMiddleware
 
-        if (!product_id || !reason) {
-            return res.status(400).json({ error: "Product ID and reason are required" });
+        if (!product_id || !reason || !reason.trim()) {
+            return res.status(400).json({ error: "Product ID and reason cannot be empty" });
         }
 
         // Validate product_id exists
@@ -17,6 +17,16 @@ const createReport = async (req, res) => {
 
         if (productCheck.rows.length === 0) {
             return res.status(404).json({ error: "Product not found" });
+        }
+
+        // Check if user already reported this product in the last 24 hours
+        const recentReportCheck = await pool.query(
+            "SELECT id FROM reports WHERE product_id = $1 AND reported_by = $2 AND created_at > NOW() - INTERVAL '24 hours'",
+            [product_id, reported_by]
+        );
+
+        if (recentReportCheck.rows.length > 0) {
+            return res.status(400).json({ error: "You have already reported this product recently. Try again later." });
         }
 
         // Insert new report
@@ -54,21 +64,55 @@ const getAllReports = async (req, res) => {
 };
 
 const updateReportStatus = async (req, res) => {
+    const client = await pool.connect();
     try {
         const { id } = req.params;
         const { status } = req.body;
         
-        const updateQuery = "UPDATE reports SET status = $1 WHERE id = $2 RETURNING *";
-        const result = await pool.query(updateQuery, [status, id]);
+        await client.query('BEGIN');
 
-        if (result.rowCount === 0) {
+        const reportResult = await client.query("SELECT * FROM reports WHERE id = $1 FOR UPDATE", [id]);
+        
+        if (reportResult.rowCount === 0) {
+            await client.query('ROLLBACK');
             return res.status(404).json({ error: "Report not found" });
         }
 
-        return res.status(200).json({ message: "Report status updated", report: result.rows[0] });
+        const report = reportResult.rows[0];
+
+        if (report.status === 'resolved' || report.status === 'rejected') {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: `Report is already finalized.` });
+        }
+
+        if (status === 'resolved') {
+            // First, delete tracking dependencies from the reports table to bypass Foreign Key constraints
+            await client.query("DELETE FROM reports WHERE product_id = $1", [report.product_id]);
+            
+            // Now safely sever the product definitively 
+            await client.query("DELETE FROM products WHERE id = $1", [report.product_id]);
+            
+            await client.query('COMMIT');
+            
+            // Return simulated updated report object back to React state without DB existence
+            return res.status(200).json({ 
+                message: `Report marked as ${status} and product definitively removed.`, 
+                report: { ...report, status: 'resolved' } 
+            });
+        }
+
+        const updateQuery = "UPDATE reports SET status = $1 WHERE id = $2 RETURNING *";
+        const result = await client.query(updateQuery, [status, id]);
+
+        await client.query('COMMIT');
+
+        return res.status(200).json({ message: `Report marked as ${status}`, report: result.rows[0] });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error("Error updating report status:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: "Failed to process report moderation." });
+    } finally {
+        client.release();
     }
 };
 

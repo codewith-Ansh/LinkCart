@@ -15,6 +15,7 @@ const adminCheck = (req, res, next) => {
 router.post("/", authMiddleware, createReport);
 router.get("/", authMiddleware, adminCheck, getAllReports);
 router.put("/:id", authMiddleware, adminCheck, updateReportStatus);
+router.patch("/:id", authMiddleware, adminCheck, updateReportStatus);
 router.delete("/:id", authMiddleware, adminCheck, deleteReport);
 
 module.exports = router;

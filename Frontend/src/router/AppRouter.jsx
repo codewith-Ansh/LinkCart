@@ -61,6 +61,7 @@ const AppRouter = () => {
                 <Route path="/auth-success" element={<AuthSuccess />} />
 
                 {/* User routes */}
+                <Route path="/dashboard" element={<Navigate to="/account" replace />} />
                 <Route path="/complete-profile" element={<CompleteProfile />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />

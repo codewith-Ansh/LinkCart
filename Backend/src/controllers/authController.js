@@ -46,7 +46,7 @@ const getRedirect = async (user) => {
 
     return (profileResult.rows.length === 0 || !profileResult.rows[0].profile_completed)
         ? "/complete-profile"
-        : "/dashboard";
+        : "/account";
 };
 
 exports.signup = async (req, res) => {
