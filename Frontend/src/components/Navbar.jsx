@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Plus, User, LogOut, LayoutList } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import UserAvatar from './UserAvatar';
+import { getDisplayName } from '../utils/profile';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const { isLoggedIn, logout } = useAppContext();
+    const { isLoggedIn, logout, currentUser } = useAppContext();
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
 
@@ -60,13 +62,19 @@ const Navbar = () => {
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                    className="rounded-full hover:scale-105 transition-all duration-200"
+                                    aria-label="Open profile menu"
                                 >
-                                    <User size={18} />
+                                    <UserAvatar user={currentUser} size="sm" className="border-2 border-white/90 shadow-md hover:shadow-lg" />
                                 </button>
 
                                 {isDropdownOpen && (
                                     <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 animate-fade-in">
+                                        <div className="px-4 pb-2">
+                                            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Signed in as</p>
+                                            <p className="truncate text-sm font-semibold text-slate-700">{getDisplayName(currentUser)}</p>
+                                        </div>
+                                        <div className="border-t border-slate-100 my-1"></div>
                                         <Link to="/account" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-sm font-medium">
                                             <User size={15} />My Profile
                                         </Link>

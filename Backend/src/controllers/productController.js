@@ -76,7 +76,14 @@ exports.getMyProducts = async (req, res) => {
 exports.getPublicProducts = async (req, res) => {
     try {
         const result = await db.query(
-            "SELECT * FROM products WHERE visibility = 'public' ORDER BY created_at DESC"
+            `SELECT 
+                p.*,
+                u.full_name AS seller_name,
+                COALESCE(u.profile_pic, '') AS seller_profile_pic
+             FROM products p
+             JOIN users u ON u.custom_id = p.user_id
+             WHERE p.visibility = 'public'
+             ORDER BY p.created_at DESC`
         );
 
         res.json(result.rows);
@@ -92,7 +99,13 @@ exports.getProductBySlug = async (req, res) => {
         const { slug } = req.params;
 
         const result = await db.query(
-            "SELECT * FROM products WHERE slug = $1",
+            `SELECT 
+                p.*,
+                u.full_name AS seller_name,
+                COALESCE(u.profile_pic, '') AS seller_profile_pic
+             FROM products p
+             JOIN users u ON u.custom_id = p.user_id
+             WHERE p.slug = $1`,
             [slug]
         );
 

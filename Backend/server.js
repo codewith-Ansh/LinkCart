@@ -80,6 +80,15 @@ app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
 
     console.error("Error:", error.message);
+
+    if (error.name === "MulterError") {
+        return res.status(400).json({ message: error.message });
+    }
+
+    if (error.message === "Only JPG, PNG, and WEBP images are allowed.") {
+        return res.status(400).json({ message: error.message });
+    }
+
     return res.status(500).json({ message: error.message });
 });
 

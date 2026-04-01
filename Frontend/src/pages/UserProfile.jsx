@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, User, ImageOff, Package, Loader2 } from 'lucide-react';
+import { MapPin, ImageOff, Package, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
+import UserAvatar from '../components/UserAvatar';
 
 const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
 const Blobs  = () => (
@@ -81,14 +82,13 @@ const UserProfile = () => {
 
                 {/* Profile card */}
                 <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)] mb-16 flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shrink-0">
-                        <User size={40} className="text-white" />
-                    </div>
+                    <UserAvatar user={user} size="md" className="w-20 h-20 text-2xl shrink-0" />
                     <div>
                         <h1 className="text-3xl font-extrabold mb-1" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                             {user.full_name}
                         </h1>
                         <p className="text-sm text-indigo-500 font-semibold mb-2">{user.custom_id}</p>
+                        {user.tagline && <p className="text-sm text-slate-500 mb-2">{user.tagline}</p>}
                         {location && (
                             <div className="flex items-center gap-1.5 text-gray-500 text-sm">
                                 <MapPin size={14} />

@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
+import UserAvatar from '../components/UserAvatar';
 
 const ImagePlaceholder = () => (
     <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
@@ -76,12 +77,15 @@ const Products = () => {
                                         <Calendar size={12} />
                                         <span>{new Date(product.created_at).toLocaleDateString()}</span>
                                     </div>
-                                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                                         <button
-                                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors truncate"
+                                            className="min-w-0 flex items-center gap-2 text-left"
                                             onClick={(e) => { e.stopPropagation(); navigate(`/user/${product.user_id}`); }}
                                         >
-                                            {product.user_id}
+                                            <UserAvatar user={product} size="sm" className="w-9 h-9 text-xs shadow-md" />
+                                            <span className="truncate text-sm font-semibold text-indigo-700 hover:text-indigo-800 transition-colors">
+                                                {product.seller_name || product.user_id}
+                                            </span>
                                         </button>
                                         <span className="text-xs bg-indigo-50 text-indigo-600 font-bold px-2 py-1 rounded-lg">Public</span>
                                     </div>
