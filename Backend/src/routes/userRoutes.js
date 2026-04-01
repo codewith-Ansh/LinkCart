@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+    getFeaturedUsers,
     getUserById,
     updateProfile,
     uploadProfilePic,
@@ -10,6 +11,7 @@ const profileUpload = require("../middleware/profileUpload");
 
 router.put("/update-profile", verifyToken, updateProfile);
 router.post("/upload-profile-pic", verifyToken, profileUpload.single("image"), uploadProfilePic);
+router.get("/featured", getFeaturedUsers);
 router.get("/:custom_id", getUserById);
 
 module.exports = router;

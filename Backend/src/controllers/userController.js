@@ -3,6 +3,14 @@ const cloudinary = require("../config/cloudinary");
 const { getUserProfileByCustomId } = require("../utils/userProfile");
 const { isProfileComplete } = require("../utils/profileCompletion");
 
+const FEATURED_HOME_USERS = [
+    "Vraj Baria",
+    "Smit Virani",
+    "Xavier",
+    "Kunj Sheth",
+    "Kalp patel",
+];
+
 const uploadBufferToCloudinary = (buffer, folder, publicId) =>
     new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -64,6 +72,51 @@ exports.getUserById = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Server error" });
   }
+};
+
+exports.getFeaturedUsers = async (req, res) => {
+    try {
+        const featuredUsersResult = await db.query(
+            `SELECT
+                requested.name AS requested_name,
+                requested.position,
+                u.custom_id,
+                u.full_name,
+                COALESCE(u.profile_pic, '') AS profile_pic,
+                COALESCE(u.tagline, '') AS tagline
+             FROM unnest($1::text[]) WITH ORDINALITY AS requested(name, position)
+             LEFT JOIN LATERAL (
+                 SELECT custom_id, full_name, profile_pic, tagline
+                 FROM users
+                 WHERE LOWER(full_name) = LOWER(requested.name)
+                 ORDER BY
+                     CASE WHEN COALESCE(profile_pic, '') <> '' THEN 0 ELSE 1 END,
+                     CASE WHEN COALESCE(tagline, '') <> '' THEN 0 ELSE 1 END,
+                     joined_at DESC NULLS LAST
+                 LIMIT 1
+             ) u ON true
+             ORDER BY requested.position`,
+            [FEATURED_HOME_USERS]
+        );
+
+        const users = featuredUsersResult.rows
+            .filter((row) => row.custom_id)
+            .map(({ custom_id, full_name, profile_pic, tagline }) => ({
+                custom_id,
+                full_name,
+                profile_pic,
+                tagline,
+            }));
+
+        const missingNames = featuredUsersResult.rows
+            .filter((row) => !row.custom_id)
+            .map((row) => row.requested_name);
+
+        res.json({ users, missingNames });
+    } catch (error) {
+        console.error("getFeaturedUsers error:", error.message);
+        res.status(500).json({ error: "Server error" });
+    }
 };
 
 exports.updateProfile = async (req, res) => {

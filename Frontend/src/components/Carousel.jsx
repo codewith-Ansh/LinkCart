@@ -1,19 +1,40 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import API_BASE from '../utils/api';
+import UserAvatar from './UserAvatar';
 
 const Carousel = () => {
     const scrollRef = useRef(null);
+    const navigate = useNavigate();
+    const [profiles, setProfiles] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const profiles = [
-        { id: 1, name: 'Alice Johnson', desc: 'Digital Artist & Illustrator' },
-        { id: 2, name: 'Bob Smith', desc: 'Tech Enthusiast & Blogger' },
-        { id: 3, name: 'Charlie Brown', desc: 'Content Creator' },
-        { id: 4, name: 'Diana Prince', desc: 'Marketing Guru' },
-        { id: 5, name: 'Ethan Hunt', desc: 'Fitness Coach' },
-    ];
+    useEffect(() => {
+        const loadFeaturedUsers = async () => {
+            try {
+                const response = await fetch(`${API_BASE}/api/users/featured`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data?.error || 'Failed to load featured creators');
+                }
+
+                setProfiles(Array.isArray(data?.users) ? data.users : []);
+            } catch (error) {
+                console.error('Failed to load featured creators:', error.message);
+                setProfiles([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadFeaturedUsers();
+    }, []);
 
     const scroll = (direction) => {
         const { current } = scrollRef;
+        if (!current) return;
         const scrollAmount = 320;
         if (direction === 'left') {
             current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
@@ -27,18 +48,32 @@ const Carousel = () => {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-16 tracking-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                 Creators using LinkCart
             </h2>
+            {!loading && profiles.length === 0 && (
+                <p className="text-center text-slate-500 mb-10">
+                    Featured creator profiles will appear here once they are available.
+                </p>
+            )}
             <div className="relative w-full">
                 <button className="absolute left-0 top-1/2 -translate-y-1/2 bg-white border border-slate-200 w-12 h-12 rounded-full flex items-center justify-center z-10 shadow-lg hover:shadow-xl hover:scale-110 transition-all" onClick={() => scroll('left')}>
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex gap-6 overflow-x-auto py-4 scrollbar-hide scroll-smooth px-16" ref={scrollRef}>
                     {profiles.map((profile) => (
-                        <div key={profile.id} className="flex-shrink-0 w-[300px] bg-white p-8 rounded-2xl border border-slate-200 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform"></div>
-                            <h3 className="font-bold text-lg mb-2">{profile.name}</h3>
-                            <p className="text-gray-600 text-sm mb-6">{profile.desc}</p>
-                            <button className="border-2 border-indigo-500 text-indigo-600 font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all duration-300 hover:scale-105">
-                                View OneLink
+                        <div key={profile.custom_id} className="flex-shrink-0 w-[300px] bg-white p-8 rounded-2xl border border-slate-200 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+                            <UserAvatar
+                                user={profile}
+                                size="lg"
+                                className="mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform"
+                            />
+                            <h3 className="font-bold text-lg mb-2">{profile.full_name}</h3>
+                            <p className="text-gray-600 text-sm mb-6 min-h-10">
+                                {profile.tagline || 'LinkCart creator'}
+                            </p>
+                            <button
+                                className="border-2 border-indigo-500 text-indigo-600 font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all duration-300 hover:scale-105"
+                                onClick={() => navigate(`/user/${profile.custom_id}`)}
+                            >
+                                Visit Profile
                             </button>
                         </div>
                     ))}
