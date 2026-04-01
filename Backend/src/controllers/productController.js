@@ -1,5 +1,7 @@
 const db = require("../config/db");
 const generateSlug = require("../utils/generateSlug");
+const { getUserProfileByCustomId } = require("../utils/userProfile");
+const { isProfileComplete } = require("../utils/profileCompletion");
 
 exports.createProduct = async (req, res) => {
     try {
@@ -18,6 +20,12 @@ exports.createProduct = async (req, res) => {
             return res.status(400).json({ error: "Location must be 200 characters or fewer" });
 
         const userId = req.user.custom_id;
+        const profile = await getUserProfileByCustomId(userId);
+
+        if (!isProfileComplete(profile)) {
+            return res.status(400).json({ error: "Profile incomplete" });
+        }
+
         const slug = generateSlug();
         const imageUrl = req.file ? req.file.path : null;
 

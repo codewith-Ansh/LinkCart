@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, ExternalLink, CheckCircle, Tag, DollarSign, MapPin, AlignLeft, Eye, ArrowRight, Loader2, ImagePlus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import API_BASE from '../utils/api';
+import { useAppContext } from '../context/AppContext';
+import { getProfileCompletionDetails, isProfileComplete } from '../utils/profileCompletion';
 
 const inputBase = 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200';
 
-const Label = ({ icon: Icon, children, required }) => (
-    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-        <Icon size={12} className="text-indigo-400" />
-        {children}{required && <span className="text-red-400 ml-0.5">*</span>}
-    </label>
-);
+const Label = ({ icon, children, required }) => {
+    const IconComponent = icon;
+
+    return (
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+            <IconComponent size={12} className="text-indigo-400" />
+            {children}{required && <span className="text-red-400 ml-0.5">*</span>}
+        </label>
+    );
+};
 
 const PostAd = () => {
     const navigate = useNavigate();
+    const { currentUser, refreshCurrentUser } = useAppContext();
     const [formData, setFormData] = useState({ title: '', price: '', location: '', description: '', visibility: 'public' });
     const [image, setImage] = useState(null);
     const [error, setError]       = useState('');
+    const [profileError, setProfileError] = useState('');
     const [loading, setLoading]   = useState(false);
     const [createdSlug, setCreatedSlug] = useState(null);
     const [copied, setCopied]     = useState(false);
+    const profileDetails = useMemo(() => getProfileCompletionDetails(currentUser), [currentUser]);
+    const profileComplete = isProfileComplete(currentUser);
+
+    useEffect(() => {
+        if (profileComplete) {
+            setProfileError('');
+        }
+    }, [profileComplete]);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
     const handleFileChange = (e) => setImage(e.target.files[0] || null);
@@ -36,12 +52,18 @@ const PostAd = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setProfileError('');
         if (!formData.title || !formData.price || !formData.location) {
             setError('Title, price, and location are required.');
             return;
         }
         const token = localStorage.getItem('token');
         if (!token) { navigate('/login'); return; }
+        const latestUser = currentUser || await refreshCurrentUser();
+        if (!isProfileComplete(latestUser)) {
+            setProfileError('Please complete your profile (Phone, Email, Location) before posting.');
+            return;
+        }
         setLoading(true);
         try {
             const payload = new FormData();
@@ -147,6 +169,28 @@ const PostAd = () => {
                             <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 animate-fade-in">
                                 <span className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold">!</span>
                                 {error}
+                            </div>
+                        )}
+
+                        {profileError && (
+                            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 animate-fade-in">
+                                <p className="font-semibold">{profileError}</p>
+                                {profileDetails.missingFields.length > 0 && (
+                                    <p className="mt-2 text-xs text-amber-700">
+                                        Missing: {profileDetails.missingFields.map((field) => {
+                                            if (field === 'phoneNumber') return 'Phone';
+                                            if (field === 'location') return 'Location';
+                                            return 'Email';
+                                        }).join(', ')}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {!profileComplete && (
+                            <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+                                <p className="font-semibold text-slate-800">Complete your profile to increase trust.</p>
+                                <p className="mt-1 text-xs text-slate-500">Profile completion: {profileDetails.completionPercentage}%</p>
                             </div>
                         )}
 

@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { getProfileCompletionDetails, isProfileComplete } = require("./profileCompletion");
 
 const getUserProfileByCustomId = async (customId) => {
     const result = await pool.query(
@@ -8,7 +9,7 @@ const getUserProfileByCustomId = async (customId) => {
             u.email,
             COALESCE(u.profile_pic, '') AS profile_pic,
             COALESCE(u.tagline, '') AS tagline,
-            up.phone,
+            COALESCE(up.phone, '') AS phone,
             up.address,
             up.city,
             up.state,
@@ -20,7 +21,20 @@ const getUserProfileByCustomId = async (customId) => {
         [customId]
     );
 
-    return result.rows[0] || null;
+    const user = result.rows[0] || null;
+
+    if (!user) {
+        return null;
+    }
+
+    const { normalizedProfile, completionPercentage } = getProfileCompletionDetails(user);
+
+    return {
+        ...user,
+        ...normalizedProfile,
+        profile_completed: isProfileComplete(user),
+        profileCompletionPercentage: completionPercentage,
+    };
 };
 
 module.exports = {

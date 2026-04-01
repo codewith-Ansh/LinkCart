@@ -7,6 +7,7 @@ import UserAvatar from '../components/UserAvatar';
 import { useAppContext } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
 import API_BASE from '../utils/api';
+import { getProfileCompletionDetails, isProfileComplete } from '../utils/profileCompletion';
 
 const detailCards = [
     { key: 'email', label: 'Email', icon: Mail },
@@ -15,17 +16,21 @@ const detailCards = [
     { key: 'state', label: 'State', icon: MapPin },
 ];
 
-const DetailCard = ({ icon: Icon, label, value }) => (
-    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-        <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-                <Icon size={18} />
+const DetailCard = ({ icon, label, value }) => {
+    const IconComponent = icon;
+
+    return (
+        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+                    <IconComponent size={18} />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
             </div>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
+            <p className="text-base font-semibold text-gray-800">{value || 'Not added yet'}</p>
         </div>
-        <p className="text-base font-semibold text-gray-800">{value || 'Not added yet'}</p>
-    </div>
-);
+    );
+};
 
 const Account = () => {
     const [isEditing, setIsEditing] = useState(false);
@@ -40,6 +45,8 @@ const Account = () => {
     const { isLoggedIn, logout, currentUser, profileLoading, updateCurrentUser } = useAppContext();
     const navigate = useNavigate();
     const toast = useToast();
+    const profileDetails = getProfileCompletionDetails(currentUser);
+    const profileComplete = isProfileComplete(currentUser);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -332,6 +339,26 @@ const Account = () => {
                             </button>
                         </div>
                     </div>
+
+                    {!profileComplete && (
+                        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                            <p className="font-semibold">Complete your profile to increase trust.</p>
+                            <p className="mt-1 text-xs text-amber-700">
+                                Completion: {profileDetails.completionPercentage}%. Missing: {profileDetails.missingFields.map((field) => {
+                                    if (field === 'phoneNumber') return 'Phone';
+                                    if (field === 'location') return 'Location';
+                                    return 'Email';
+                                }).join(', ')}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/profile')}
+                                className="mt-3 inline-flex items-center rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-700"
+                            >
+                                Complete Profile
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">

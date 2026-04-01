@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MapPin, ImageOff, Copy, ExternalLink, Flag, Loader2, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -7,9 +7,9 @@ import API_BASE from '../utils/api';
 import { getProductImageSrc } from '../utils/productImage';
 import { useToast } from '../context/ToastContext';
 import UserAvatar from '../components/UserAvatar';
-import InterestModal from '../components/InterestModal';
 import ProductStatusBadge from '../components/ProductStatusBadge';
 import { useAppContext } from '../context/AppContext';
+import { getProfileCompletionDetails, isProfileComplete } from '../utils/profileCompletion';
 
 const PublicProductPage = () => {
     const { slug } = useParams();
@@ -19,15 +19,19 @@ const PublicProductPage = () => {
     const [notFound, setNotFound] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
-    const [showInterestModal, setShowInterestModal] = useState(false);
+    const [showInterestComposer, setShowInterestComposer] = useState(false);
     const [interestSubmitting, setInterestSubmitting] = useState(false);
     const [interestSent, setInterestSent] = useState(false);
     const [interestMessage, setInterestMessage] = useState('');
+    const [profileWarning, setProfileWarning] = useState('');
+    const [completeProfilePulse, setCompleteProfilePulse] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportDescription, setReportDescription] = useState('');
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const toast = useToast();
-    const { currentUser, isLoggedIn, refreshSellerInterestCount } = useAppContext();
+    const { currentUser, isLoggedIn, refreshCurrentUser, refreshSellerInterestCount } = useAppContext();
+    const profileDetails = useMemo(() => getProfileCompletionDetails(currentUser), [currentUser]);
+    const profileComplete = isProfileComplete(currentUser);
 
     useEffect(() => {
         fetch(`${API_BASE}/api/products/${slug}`)
@@ -54,10 +58,22 @@ const PublicProductPage = () => {
     const isSold = product?.status === 'sold';
     const isInDeal = product?.status === 'in_progress';
 
+    useEffect(() => {
+        if (profileComplete) {
+            setProfileWarning('');
+        }
+    }, [profileComplete]);
+
     const handleInterestConfirm = async () => {
         const token = localStorage.getItem('token');
         if (!token) {
             navigate('/login');
+            return;
+        }
+
+        const latestUser = currentUser || await refreshCurrentUser();
+        if (!isProfileComplete(latestUser)) {
+            setProfileWarning('Complete your profile (Phone, Email, Location) to contact the seller.');
             return;
         }
 
@@ -83,19 +99,42 @@ const PublicProductPage = () => {
             }
 
             setInterestSent(true);
-            setShowInterestModal(false);
+            setShowInterestComposer(false);
             setInterestMessage('');
             toast.success('Interest sent successfully.');
             refreshSellerInterestCount();
         } catch (error) {
             if (error.message.toLowerCase().includes('already shown interest')) {
                 setInterestSent(true);
-                setShowInterestModal(false);
+                setShowInterestComposer(false);
             }
             toast.error(error.message || 'Failed to send interest.');
         } finally {
             setInterestSubmitting(false);
         }
+    };
+
+    const handleInterestedClick = async () => {
+        if (!isLoggedIn) {
+            navigate('/login');
+            return;
+        }
+
+        const latestUser = currentUser || await refreshCurrentUser();
+        if (!isProfileComplete(latestUser)) {
+            setProfileWarning('Complete your profile (Phone, Email, Location) to contact the seller.');
+            setShowInterestComposer(false);
+            return;
+        }
+
+        setProfileWarning('');
+        setShowInterestComposer((prev) => !prev);
+    };
+
+    const handleCompleteProfileClick = () => {
+        setCompleteProfilePulse(true);
+        setTimeout(() => setCompleteProfilePulse(false), 300);
+        navigate('/profile');
     };
 
     const handleReportSubmit = async (e) => {
@@ -241,7 +280,7 @@ const PublicProductPage = () => {
                             <button
                                 type="button"
                                 disabled={!isLoggedIn || isOwner || isSold || interestSent}
-                                onClick={() => setShowInterestModal(true)}
+                                onClick={handleInterestedClick}
                                 className="mt-4 w-full rounded-xl bg-purple-600 px-6 py-4 font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
                             >
                                 {isOwner
@@ -259,6 +298,65 @@ const PublicProductPage = () => {
                                 <p className="mt-3 text-sm text-gray-500">Log in to express interest in this product.</p>
                             )}
 
+                            {profileWarning && isLoggedIn && !isOwner && !isSold && !interestSent && (
+                                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 animate-fade-in">
+                                    <p className="font-semibold">{profileWarning}</p>
+                                    <p className="mt-1 text-xs text-amber-700">
+                                        Missing: {profileDetails.missingFields.map((field) => {
+                                            if (field === 'phoneNumber') return 'Phone';
+                                            if (field === 'location') return 'Location';
+                                            return 'Email';
+                                        }).join(', ')}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleCompleteProfileClick}
+                                        className={`mt-3 inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all duration-200 ${
+                                            completeProfilePulse ? 'bg-amber-500 scale-95' : 'bg-amber-600 hover:bg-amber-700'
+                                        }`}
+                                    >
+                                        Complete Profile
+                                    </button>
+                                </div>
+                            )}
+
+                            {showInterestComposer && isLoggedIn && !isOwner && !isSold && !interestSent && (
+                                <div className="mt-3 rounded-xl border border-purple-100 bg-purple-50/70 p-4 animate-fade-in">
+                                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                                        Write a message to the seller (optional)
+                                    </label>
+                                    <textarea
+                                        value={interestMessage}
+                                        onChange={(event) => setInterestMessage(event.target.value)}
+                                        rows={4}
+                                        maxLength={1000}
+                                        placeholder="Hi, I'm interested in this product. Is it still available?"
+                                        className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                                    />
+                                    <div className="mt-2 text-right text-xs text-gray-400">{interestMessage.length}/1000</div>
+                                    <div className="mt-3 flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowInterestComposer(false);
+                                                setInterestMessage('');
+                                            }}
+                                            className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleInterestConfirm}
+                                            disabled={interestSubmitting}
+                                            className="flex-1 rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {interestSubmitting ? <Loader2 size={16} className="mx-auto animate-spin" /> : 'Send Request'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <button
                                 type="button"
                                 className="mt-3 rounded-xl border border-gray-200 bg-white px-6 py-4 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
@@ -270,20 +368,6 @@ const PublicProductPage = () => {
                     </div>
                 </div>
             </div>
-
-            <InterestModal
-                open={showInterestModal}
-                message={interestMessage}
-                submitting={interestSubmitting}
-                onClose={() => {
-                    setShowInterestModal(false);
-                    if (!interestSubmitting) {
-                        setInterestMessage('');
-                    }
-                }}
-                onConfirm={handleInterestConfirm}
-                onMessageChange={setInterestMessage}
-            />
 
             {showReportModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6" onClick={() => setShowReportModal(false)}>

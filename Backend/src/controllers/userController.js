@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const cloudinary = require("../config/cloudinary");
 const { getUserProfileByCustomId } = require("../utils/userProfile");
+const { isProfileComplete } = require("../utils/profileCompletion");
 
 const uploadBufferToCloudinary = (buffer, folder, publicId) =>
     new Promise((resolve, reject) => {
@@ -82,6 +83,15 @@ exports.updateProfile = async (req, res) => {
 
         await client.query("BEGIN");
 
+        const existingProfileResult = await client.query(
+            `SELECT u.email, up.city, up.state, up.phone
+             FROM users u
+             LEFT JOIN user_profiles up ON up.user_id = u.custom_id
+             WHERE u.custom_id = $1`,
+            [custom_id]
+        );
+        const existingProfile = existingProfileResult.rows[0] || {};
+
         const userFields = [];
         const userValues = [];
         let paramIndex = 1;
@@ -107,14 +117,25 @@ exports.updateProfile = async (req, res) => {
         }
 
         if (phone !== undefined) {
+            const location = [existingProfile.city, existingProfile.state]
+                .map((value) => (typeof value === "string" ? value.trim() : ""))
+                .filter(Boolean)
+                .join(", ");
+            const profileCompleted = isProfileComplete({
+                phoneNumber: phone,
+                email: existingProfile.email,
+                location,
+            });
+
             await client.query(
                 `INSERT INTO user_profiles (user_id, phone, profile_completed, updated_at)
-                 VALUES ($1, $2, TRUE, NOW())
+                 VALUES ($1, $2, $3, NOW())
                  ON CONFLICT (user_id)
                  DO UPDATE SET
                     phone = EXCLUDED.phone,
+                    profile_completed = EXCLUDED.profile_completed,
                     updated_at = NOW()`,
-                [custom_id, phone]
+                [custom_id, phone, profileCompleted]
             );
         }
 

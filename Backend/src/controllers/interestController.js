@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const { getUserProfileByCustomId } = require("../utils/userProfile");
+const { isProfileComplete } = require("../utils/profileCompletion");
 
 const getInterestForSeller = async (interestId, sellerId) => {
     const result = await db.query(
@@ -27,6 +29,12 @@ exports.createInterest = async (req, res) => {
     }
 
     try {
+        const buyerProfile = await getUserProfileByCustomId(buyerId);
+
+        if (!isProfileComplete(buyerProfile)) {
+            return res.status(400).json({ error: "Profile incomplete" });
+        }
+
         const productResult = await db.query(
             `SELECT id, user_id, title, status
              FROM products

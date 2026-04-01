@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { getUserProfileByCustomId } = require("../utils/userProfile");
 
 exports.getOverview = async (req, res) => {
     try {
@@ -13,11 +14,12 @@ exports.getOverview = async (req, res) => {
         );
 
         const row = result.rows[0];
+        const profile = await getUserProfileByCustomId(custom_id);
 
         res.json({
             totalLinksCreated: parseInt(row.totalLinksCreated, 10),
             activeListings:    parseInt(row.activeListings,    10),
-            profileStatus:     row.profileCompleted ? "Active" : "Incomplete",
+            profileStatus:     profile?.profile_completed ? "Active" : "Incomplete",
         });
     } catch (error) {
         console.error("Dashboard overview error:", error.message);

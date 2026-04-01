@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { profileSchema } from '../utils/validationSchemas';
 import { INDIAN_STATES_CITIES } from '../utils/indianStatesData';
 import API_BASE from '../utils/api';
+import { useAppContext } from '../context/AppContext';
 
 const STATE_PINCODE_ZONES = {
     'Jammu and Kashmir': ['18', '19'], 'Ladakh': ['19'], 'Himachal Pradesh': ['17'],
@@ -43,17 +44,22 @@ const FieldError = ({ touched, error }) =>
         </p>
     ) : null;
 
-const Label = ({ icon: Icon, children }) => (
-    <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-        <Icon size={12} className="text-indigo-400" />{children}
-    </label>
-);
+const Label = ({ icon, children }) => {
+    const IconComponent = icon;
+
+    return (
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+            <IconComponent size={12} className="text-indigo-400" />{children}
+        </label>
+    );
+};
 
 const CompleteProfile = () => {
     const [userId, setUserId]       = useState('');
     const [serverError, setServerError] = useState('');
     const [loading, setLoading]     = useState(true);
     const navigate = useNavigate();
+    const { refreshCurrentUser } = useAppContext();
 
     const formik = useFormik({
         initialValues: { phone: '', address: '', state: '', city: '', pincode: '' },
@@ -81,6 +87,7 @@ const CompleteProfile = () => {
                 });
                 const data = await response.json();
                 if (!response.ok) { setServerError(data.error || 'Failed to save profile'); return; }
+                await refreshCurrentUser();
                 navigate('/');
             } catch {
                 setServerError('Server error. Please try again later.');
