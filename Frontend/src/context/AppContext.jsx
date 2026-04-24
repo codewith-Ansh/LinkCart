@@ -2,16 +2,30 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import API_BASE from '../utils/api';
 
 const AppContext = createContext();
+const THEME_KEY = 'theme';
+
+const getInitialTheme = () => {
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+        return storedTheme;
+    }
+
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
 
 export const AppProvider = ({ children }) => {
-    const [theme, setTheme] = useState('light');
+    const [theme, setTheme] = useState(getInitialTheme);
     const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('token'));
     const [currentUser, setCurrentUser] = useState(null);
     const [profileLoading, setProfileLoading] = useState(() => !!localStorage.getItem('token'));
     const [sellerInterestCount, setSellerInterestCount] = useState(0);
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+        setTheme((prev) => {
+            const newTheme = prev === 'light' ? 'dark' : 'light';
+            localStorage.setItem(THEME_KEY, newTheme);
+            return newTheme;
+        });
     };
 
     const refreshCurrentUser = async () => {
@@ -73,7 +87,10 @@ export const AppProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        document.body.className = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme;
+        document.body.classList.remove('light', 'dark');
+        document.body.classList.add(theme);
     }, [theme]);
 
     useEffect(() => {

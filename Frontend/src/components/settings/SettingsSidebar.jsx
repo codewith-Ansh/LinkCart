@@ -8,7 +8,7 @@ const SettingsSidebar = ({ tabs, activeKey, onChange }) => {
         <>
             {/* Mobile: top tabs */}
             <div className="md:hidden mb-4">
-                <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-2 shadow-[0_8px_40px_rgba(99,102,241,0.10)]">
+                <div className="theme-surface rounded-2xl p-2 backdrop-blur-xl">
                     <div className="flex gap-2 overflow-x-auto no-scrollbar">
                         {tabs.map((tab) => {
                             const isActive = tab.key === activeKey;
@@ -33,8 +33,8 @@ const SettingsSidebar = ({ tabs, activeKey, onChange }) => {
 
             {/* Desktop: sidebar */}
             <div className="hidden md:block">
-                <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-3 shadow-[0_8px_40px_rgba(99,102,241,0.10)]">
-                    <p className="px-3 pt-2 pb-3 text-xs uppercase tracking-[0.18em] text-slate-400">
+                <div className="theme-surface rounded-2xl p-3 backdrop-blur-xl">
+                    <p className="theme-text-muted px-3 pt-2 pb-3 text-xs uppercase tracking-[0.18em]">
                         Settings
                     </p>
                     <div className="flex flex-col gap-1">

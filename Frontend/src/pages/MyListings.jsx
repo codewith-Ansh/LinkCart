@@ -9,7 +9,6 @@ import ProductStatusBadge from '../components/ProductStatusBadge';
 import { useToast } from '../context/ToastContext';
 import { formatINR } from '../utils/currency';
 
-const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
 const Blobs  = () => (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
         <div style={{ width: 500, height: 500, top: '-140px', left: '-140px', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
@@ -18,7 +17,7 @@ const Blobs  = () => (
 );
 
 const ImagePlaceholder = () => (
-    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
+    <div className="theme-subtle-panel flex h-48 w-full flex-col items-center justify-center gap-2 theme-text-muted">
         <ImageOff size={32} />
         <span className="text-xs font-medium">No Image Available</span>
     </div>
@@ -167,12 +166,12 @@ const MyListings = () => {
     };
 
     return (
-        <div className="min-h-screen" style={pageBg}>
+        <div className="theme-page min-h-screen">
             <Blobs />
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-16 animate-fade-in">
                 <div className="flex items-center justify-between mb-16">
-                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-800" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                    <h1 className="theme-text-primary text-5xl font-extrabold tracking-tight md:text-6xl" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                         My Listings
                     </h1>
                     <button
@@ -195,8 +194,8 @@ const MyListings = () => {
                         <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mb-8">
                             <Package size={48} className="text-indigo-600" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: 'Clash Display, sans-serif' }}>No Listings Yet</h2>
-                        <p className="text-gray-600 text-lg mb-10">You haven't created any products.</p>
+                        <h2 className="theme-text-primary mb-4 text-3xl font-bold md:text-4xl" style={{ fontFamily: 'Clash Display, sans-serif' }}>No Listings Yet</h2>
+                        <p className="theme-text-secondary mb-10 text-lg">You haven't created any products.</p>
                         <button
                             className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-10 py-4 rounded-xl hover:scale-105 hover:shadow-xl transition-all duration-300"
                             onClick={() => navigate('/post-ad')}
@@ -213,7 +212,7 @@ const MyListings = () => {
                             return (
                             <div
                                 key={listing.id}
-                                className="bg-white/80 backdrop-blur-sm border border-white rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)] hover:-translate-y-1 cursor-pointer flex flex-col"
+                                className="theme-surface flex cursor-pointer flex-col overflow-hidden rounded-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)]"
                                 onClick={() => navigate(`/p/${listing.slug}`)}
                             >
                                 <div className="relative">
@@ -238,23 +237,23 @@ const MyListings = () => {
                                     </div>
                                 </div>
                                 <div className="p-5 flex flex-col flex-1">
-                                    <h3 className="font-bold text-lg mb-1 truncate">{listing.title}</h3>
+                                    <h3 className="theme-text-primary mb-1 truncate text-lg font-bold">{listing.title}</h3>
                                     <p className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                                         {formatINR(listing.price)}
                                     </p>
                                     {listing.location && (
-                                        <div className="flex items-center gap-1 text-gray-500 text-sm mb-1">
+                                        <div className="theme-text-secondary mb-1 flex items-center gap-1 text-sm">
                                             <MapPin size={13} />
                                             <span className="truncate">{listing.location}</span>
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-1 text-gray-400 text-xs mb-4">
+                                    <div className="theme-text-muted mb-4 flex items-center gap-1 text-xs">
                                         <Calendar size={12} />
                                         <span>{new Date(listing.created_at).toLocaleDateString()}</span>
                                     </div>
                                     <button
                                         onClick={(e) => handleCopy(e, listing.slug)}
-                                        className="mt-auto flex items-center justify-center gap-2 border border-indigo-300 text-indigo-600 text-sm font-semibold px-3 py-2 rounded-xl hover:bg-indigo-50 transition-all"
+                                        className="theme-btn-secondary mt-auto flex items-center justify-center gap-2 rounded-xl border border-indigo-300 px-3 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50"
                                     >
                                         <Copy size={14} />
                                         {copiedId === listing.slug ? 'Copied!' : 'Copy Link'}
@@ -274,7 +273,7 @@ const MyListings = () => {
                                                 event.stopPropagation();
                                                 navigate(`/edit-listing/${listing.id}`);
                                             }}
-                                            className={`flex items-center justify-center p-2 rounded-xl border-2 border-indigo-100 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${listing.status === 'sold' ? 'flex-1' : ''}`}
+                                            className={`theme-btn-secondary flex items-center justify-center rounded-xl border-2 border-indigo-100 p-2 text-indigo-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600 ${listing.status === 'sold' ? 'flex-1' : ''}`}
                                             title="Edit product"
                                         >
                                             <Edit2 size={18} />
@@ -282,7 +281,7 @@ const MyListings = () => {
                                         </button>
                                         <button
                                             onClick={(event) => handleDeleteProduct(event, listing.id)}
-                                            className={`flex items-center justify-center p-2 rounded-xl border-2 border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors ${listing.status === 'sold' ? 'flex-1' : ''}`}
+                                            className={`theme-btn-danger flex items-center justify-center rounded-xl border-2 border-red-100 p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 ${listing.status === 'sold' ? 'flex-1' : ''}`}
                                             title="Delete product"
                                         >
                                             <Trash2 size={18} />
@@ -300,14 +299,14 @@ const MyListings = () => {
 
             {/* Confirmation Dialog Modal */}
             {confirmDialog.isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+                <div className="theme-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="theme-surface w-full max-w-sm scale-100 overflow-hidden rounded-2xl animate-in zoom-in-95 duration-200">
                         <div className="p-6 text-center">
                             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
                                 <Trash2 className="h-8 w-8 text-red-600" aria-hidden="true" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{confirmDialog.title}</h3>
-                            <p className="text-sm text-gray-500 mb-8">{confirmDialog.message}</p>
+                            <h3 className="theme-text-primary mb-2 text-xl font-bold">{confirmDialog.title}</h3>
+                            <p className="theme-text-secondary mb-8 text-sm">{confirmDialog.message}</p>
                             
                             <div className="flex flex-col gap-3">
                                 <button
@@ -322,7 +321,7 @@ const MyListings = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    className="w-full inline-flex justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-bold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-gray-900 focus:outline-none transition-colors mt-2"
+                                    className="theme-btn-secondary mt-2 inline-flex w-full justify-center rounded-xl px-4 py-3 text-base font-bold transition-colors"
                                     onClick={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
                                 >
                                     Cancel

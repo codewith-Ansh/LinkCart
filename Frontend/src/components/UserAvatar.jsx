@@ -7,7 +7,7 @@ const sizeClasses = {
     lg: 'w-[120px] h-[120px] text-3xl',
 };
 
-const UserAvatar = ({ user, className = '', size = 'md' }) => {
+const UserAvatar = ({ user, className = '', size = 'md', style }) => {
     const image = getProfileImage(user);
     const name = getDisplayName(user);
     const dimensionClass = sizeClasses[size] || sizeClasses.md;
@@ -17,6 +17,7 @@ const UserAvatar = ({ user, className = '', size = 'md' }) => {
             <img
                 src={image}
                 alt={name}
+                style={style}
                 className={`${dimensionClass} rounded-full object-cover shadow-lg ${className}`.trim()}
             />
         );
@@ -25,7 +26,9 @@ const UserAvatar = ({ user, className = '', size = 'md' }) => {
     return (
         <div
             aria-label={name}
-            className={`${dimensionClass} flex items-center justify-center rounded-full bg-purple-100 font-bold text-purple-600 ${className}`.trim()}
+            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)', ...(style || {}) }}
+            className={`${dimensionClass} flex items-center justify-center rounded-full font-bold text-white ${className}`.trim()}
+            role="img"
         >
             {getInitials(name)}
         </div>

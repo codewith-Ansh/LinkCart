@@ -1,18 +1,24 @@
-// Simple theme utility for student-friendly implementation
+const THEME_KEY = 'theme';
+
+const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.style.colorScheme = theme;
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(theme);
+};
+
 export const initializeTheme = () => {
-    // Get saved theme from localStorage or default to 'light'
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    
-    // Apply theme to body
-    document.body.className = savedTheme;
-    
-    return savedTheme;
+    const storedTheme = localStorage.getItem(THEME_KEY);
+    const nextTheme =
+        storedTheme === 'light' || storedTheme === 'dark'
+            ? storedTheme
+            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    applyTheme(nextTheme);
+    return nextTheme;
 };
 
 export const saveTheme = (theme) => {
-    // Save theme to localStorage
-    localStorage.setItem('theme', theme);
-    
-    // Apply theme to body
-    document.body.className = theme;
+    localStorage.setItem(THEME_KEY, theme);
+    applyTheme(theme);
 };

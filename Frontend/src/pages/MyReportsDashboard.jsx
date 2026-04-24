@@ -58,7 +58,7 @@ const MyReportsDashboard = () => {
     }, [navigate, toast]);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="theme-page flex min-h-screen flex-col">
             <Navbar />
             
             <div className="flex-1 w-full max-w-5xl mx-auto px-6 py-12">
@@ -70,10 +70,10 @@ const MyReportsDashboard = () => {
                 </button>
 
                 <div className="mb-10 block">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                    <h1 className="theme-text-primary text-3xl font-extrabold tracking-tight md:text-4xl" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                         My Reports
                     </h1>
-                    <p className="text-gray-500 mt-2">Track the status of products you've reported.</p>
+                    <p className="theme-text-secondary mt-2">Track the status of products you've reported.</p>
                 </div>
 
                 {loading ? (
@@ -81,15 +81,15 @@ const MyReportsDashboard = () => {
                         <Loader2 size={40} className="animate-spin text-indigo-600" />
                     </div>
                 ) : reports.length === 0 ? (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+                    <div className="theme-surface rounded-2xl p-16 text-center">
                         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mb-6">
                             <Flag size={28} className="text-gray-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">No Reports Submitted</h3>
-                        <p className="text-gray-500">You haven't reported any products yet. Reports help keep our community safe.</p>
+                        <h3 className="theme-text-primary mb-2 text-xl font-bold">No Reports Submitted</h3>
+                        <p className="theme-text-secondary">You haven't reported any products yet. Reports help keep our community safe.</p>
                         <button
                             onClick={() => navigate('/products')}
-                            className="mt-6 px-6 py-3 rounded-xl bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors inline-block"
+                            className="theme-btn-secondary mt-6 inline-block rounded-xl px-6 py-3 font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
                         >
                             Browse Products
                         </button>
@@ -97,31 +97,31 @@ const MyReportsDashboard = () => {
                 ) : (
                     <div className="grid gap-6">
                         {reports.map((report) => (
-                            <div key={report.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
+                            <div key={report.id} className="theme-surface flex flex-col gap-6 rounded-2xl p-6 transition-shadow hover:shadow-md md:flex-row">
                                 <div className="flex-1 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <StatusBadge status={report.status} />
-                                            <span className="text-sm text-gray-400 font-medium ml-2">
+                                            <span className="theme-text-muted ml-2 text-sm font-medium">
                                                 {new Date(report.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
                                     </div>
                                     
                                     <div>
-                                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <h4 className="theme-text-muted mb-1.5 flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest">
                                             <Flag size={14} className="text-gray-400" /> Reason
                                         </h4>
-                                        <p className="text-gray-800 font-medium bg-gray-50 p-4 rounded-xl border border-gray-100">{report.reason}</p>
+                                        <p className="theme-subtle-panel theme-text-primary rounded-xl p-4 font-medium">{report.reason}</p>
                                     </div>
                                 </div>
 
-                                <div className="md:w-1/3 md:border-l md:border-gray-100 md:pl-6 flex flex-col justify-center">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Target Product</h4>
+                                <div className="flex flex-col justify-center md:w-1/3 md:border-l md:border-gray-100 md:pl-6">
+                                    <h4 className="theme-text-muted mb-2 text-xs font-bold uppercase tracking-widest">Target Product</h4>
                                     
                                     {report.productTitle ? (
                                         <div className="space-y-3">
-                                            <p className="font-bold text-gray-900 line-clamp-2">{report.productTitle}</p>
+                                            <p className="theme-text-primary line-clamp-2 font-bold">{report.productTitle}</p>
                                             <button 
                                                 onClick={() => navigate(`/p/${report.productSlug}`)}
                                                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800"

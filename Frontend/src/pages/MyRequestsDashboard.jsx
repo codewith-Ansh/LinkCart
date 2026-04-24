@@ -82,15 +82,15 @@ const MyRequestsDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-gray-50">
+        <div className="theme-page min-h-screen">
             <Navbar />
             <div className="mx-auto max-w-6xl px-6 py-12 md:px-8">
                 <InterestDashboardTabs activePath="/dashboard/my-requests" />
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                    <h1 className="theme-text-primary text-3xl font-bold" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                         My Requests
                     </h1>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="theme-text-secondary mt-2 text-sm">
                         Track every request you have sent and view seller contact details after acceptance.
                     </p>
                 </div>
@@ -100,9 +100,9 @@ const MyRequestsDashboard = () => {
                         <Loader2 size={30} className="animate-spin text-purple-600" />
                     </div>
                 ) : requests.length === 0 ? (
-                    <div className="rounded-xl border border-gray-100 bg-white p-10 text-center shadow-sm">
-                        <h2 className="text-lg font-semibold text-gray-900">No requests sent yet</h2>
-                        <p className="mt-2 text-sm text-gray-500">When you send an interest request, it will appear here.</p>
+                    <div className="theme-surface rounded-xl p-10 text-center">
+                        <h2 className="theme-text-primary text-lg font-semibold">No requests sent yet</h2>
+                        <p className="theme-text-secondary mt-2 text-sm">When you send an interest request, it will appear here.</p>
                     </div>
                 ) : (
                     <div className="grid gap-6">
@@ -110,11 +110,11 @@ const MyRequestsDashboard = () => {
                             const contact = contacts[request.id];
 
                             return (
-                                <div key={request.id} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                                <div key={request.id} className="theme-surface rounded-xl p-6">
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-3">
-                                                <h2 className="text-lg font-semibold text-gray-900">{request.product_title}</h2>
+                                                <h2 className="theme-text-primary text-lg font-semibold">{request.product_title}</h2>
                                                 <ProductStatusBadge status={request.product_status} />
                                                 <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusPillMap[request.status] || statusPillMap.pending}`}>
                                                     {request.status}
@@ -123,15 +123,15 @@ const MyRequestsDashboard = () => {
 
                                             <div className="mt-4 grid gap-4 md:grid-cols-2">
                                                 <div>
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Seller</p>
-                                                    <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                                    <p className="theme-text-muted text-xs font-semibold uppercase tracking-[0.18em]">Seller</p>
+                                                    <div className="theme-text-primary mt-1 flex items-center gap-2 text-sm font-semibold">
                                                         <User size={14} className="text-purple-500" />
                                                         <span>{request.seller_name}</span>
                                                     </div>
                                                     {request.message && (
-                                                        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                                                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Your Message</p>
-                                                            <div className="mt-1 flex items-start gap-2 text-sm text-gray-600">
+                                                        <div className="theme-subtle-panel mt-3 rounded-xl p-3">
+                                                            <p className="theme-text-muted text-xs font-semibold uppercase tracking-[0.18em]">Your Message</p>
+                                                            <div className="theme-text-secondary mt-1 flex items-start gap-2 text-sm">
                                                                 <MessageSquare size={14} className="mt-0.5 shrink-0 text-purple-500" />
                                                                 <span>{request.message}</span>
                                                             </div>
@@ -140,12 +140,12 @@ const MyRequestsDashboard = () => {
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Status</p>
+                                                    <p className="theme-text-muted text-xs font-semibold uppercase tracking-[0.18em]">Status</p>
                                                     {request.status === 'accepted' ? (
                                                         contact?.error ? (
-                                                            <p className="mt-2 text-sm text-gray-500">{contact.error}</p>
+                                                            <p className="theme-text-secondary mt-2 text-sm">{contact.error}</p>
                                                         ) : (
-                                                            <div className="mt-2 space-y-2 text-sm text-gray-600">
+                                                            <div className="theme-text-secondary mt-2 space-y-2 text-sm">
                                                                 <div className="flex items-center gap-2">
                                                                     <Mail size={14} className="text-purple-500" />
                                                                     <span>{contact?.email || 'Not available'}</span>
@@ -161,14 +161,14 @@ const MyRequestsDashboard = () => {
                                                             </div>
                                                         )
                                                     ) : request.status === 'pending' ? (
-                                                        <p className="mt-2 text-sm text-gray-500">Waiting for seller</p>
+                                                        <p className="theme-text-secondary mt-2 text-sm">Waiting for seller</p>
                                                     ) : (
-                                                        <p className="mt-2 text-sm text-gray-500">Request Rejected</p>
+                                                        <p className="theme-text-secondary mt-2 text-sm">Request Rejected</p>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            <p className="mt-4 text-xs text-gray-400">
+                                            <p className="theme-text-muted mt-4 text-xs">
                                                 Sent on {new Date(request.created_at).toLocaleString()}
                                             </p>
                                         </div>

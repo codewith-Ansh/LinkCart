@@ -3,7 +3,7 @@ import demoVideo from '../../videos/LinkCart_Video.mp4';
 
 const VideoSection = () => {
     return (
-        <section id="demo-video" className="w-full py-24 px-6 md:px-12 lg:px-20 flex flex-col items-center gap-12 bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+        <section id="demo-video" className="theme-section flex w-full flex-col items-center gap-12 px-6 py-24 md:px-12 lg:px-20">
             <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-indigo-200 bg-black shadow-xl hover:scale-[1.02] transition-transform duration-300">
                 <video
                     className="w-full aspect-video object-contain"

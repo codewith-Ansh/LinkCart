@@ -44,33 +44,33 @@ const Carousel = () => {
     };
 
     return (
-        <section className="w-full py-24 px-6 md:px-12 lg:px-20 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-16 tracking-tight" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+        <section className="theme-section w-full px-6 py-24 md:px-12 lg:px-20">
+            <h2 className="theme-text-primary mb-16 text-center text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                 Creators using LinkCart
             </h2>
             {!loading && profiles.length === 0 && (
-                <p className="text-center text-slate-500 mb-10">
+                <p className="theme-text-secondary mb-10 text-center">
                     Featured creator profiles will appear here once they are available.
                 </p>
             )}
             <div className="relative w-full">
-                <button className="absolute left-0 top-1/2 -translate-y-1/2 bg-white border border-slate-200 w-12 h-12 rounded-full flex items-center justify-center z-10 shadow-lg hover:shadow-xl hover:scale-110 transition-all" onClick={() => scroll('left')}>
+                <button className="theme-surface theme-text-primary absolute left-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full transition-all hover:scale-110 hover:shadow-xl" onClick={() => scroll('left')}>
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex gap-6 overflow-x-auto py-4 scrollbar-hide scroll-smooth px-16" ref={scrollRef}>
                     {profiles.map((profile) => (
-                        <div key={profile.custom_id} className="flex-shrink-0 w-[300px] bg-white p-8 rounded-2xl border border-slate-200 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group">
+                        <div key={profile.custom_id} className="theme-surface group w-[300px] flex-shrink-0 rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                             <UserAvatar
                                 user={profile}
                                 size="lg"
                                 className="mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform"
                             />
-                            <h3 className="font-bold text-lg mb-2">{profile.full_name}</h3>
-                            <p className="text-gray-600 text-sm mb-6 min-h-10">
+                            <h3 className="theme-text-primary mb-2 text-lg font-bold">{profile.full_name}</h3>
+                            <p className="theme-text-secondary mb-6 min-h-10 text-sm">
                                 {profile.tagline || 'LinkCart creator'}
                             </p>
                             <button
-                                className="border-2 border-indigo-500 text-indigo-600 font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-500 hover:text-white transition-all duration-300 hover:scale-105"
+                                className="theme-btn-secondary rounded-xl border-2 border-indigo-500 px-6 py-2.5 font-semibold text-indigo-600 transition-all duration-300 hover:scale-105 hover:bg-indigo-500 hover:text-white"
                                 onClick={() => navigate(`/user/${profile.custom_id}`)}
                             >
                                 Visit Profile
@@ -78,7 +78,7 @@ const Carousel = () => {
                         </div>
                     ))}
                 </div>
-                <button className="absolute right-0 top-1/2 -translate-y-1/2 bg-white border border-slate-200 w-12 h-12 rounded-full flex items-center justify-center z-10 shadow-lg hover:shadow-xl hover:scale-110 transition-all" onClick={() => scroll('right')}>
+                <button className="theme-surface theme-text-primary absolute right-0 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full transition-all hover:scale-110 hover:shadow-xl" onClick={() => scroll('right')}>
                     <ChevronRight size={20} />
                 </button>
             </div>

@@ -27,8 +27,7 @@ const primaryBtn =
 const dangerBtn =
     'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed';
 
-const cardSubtle =
-    'bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-6 md:p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)]';
+const cardSubtle = 'theme-surface rounded-2xl p-6 backdrop-blur-xl md:p-8';
 
 const readToken = () => localStorage.getItem('token') || '';
 
@@ -58,12 +57,9 @@ const Settings = () => {
     const [profileSaving, setProfileSaving] = useState(false);
     const [securitySaving, setSecuritySaving] = useState(false);
     const [uploadingPic, setUploadingPic] = useState(false);
-
     const [errors, setErrors] = useState({});
-
     const [securityError, setSecurityError] = useState('');
     const [securitySuccess, setSecuritySuccess] = useState('');
-
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteStep, setDeleteStep] = useState(1);
     const [deleteText, setDeleteText] = useState('');
@@ -213,7 +209,6 @@ const Settings = () => {
 
         setProfileSaving(true);
         try {
-            // 1) Update "Bio" -> users.tagline (existing API)
             const res1 = await authFetch(`${API_BASE}/api/users/update-profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -226,7 +221,6 @@ const Settings = () => {
             }
             updateCurrentUser(data1.user || {});
 
-            // 2) Update city/state via existing profile API (preserve other fields)
             const payload = {
                 phone: (currentUser?.phone ?? '').toString(),
                 address: currentUser?.address ?? '',
@@ -242,7 +236,6 @@ const Settings = () => {
             });
 
             if (!res2.ok) {
-                // Keep UX safe: bio was saved, but city/state might not be.
                 toast.warning('Bio saved. Location update is unavailable right now.');
                 return;
             }
@@ -384,12 +377,12 @@ const Settings = () => {
                 <Navbar />
                 <SettingsLayout title="Settings" subtitle="Manage your account preferences.">
                     <div className={cardSubtle}>
-                        <p className="text-slate-700 font-medium">You need to be signed in to access settings.</p>
+                        <p className="theme-text-primary font-medium">You need to be signed in to access settings.</p>
                         <div className="mt-5 flex items-center gap-3">
                             <button className={primaryBtn} type="button" onClick={() => navigate('/login')}>
                                 Go to Login
                             </button>
-                            <Link className="text-sm text-indigo-600 font-semibold hover:text-indigo-700" to="/signup">
+                            <Link className="text-sm font-semibold text-indigo-600 hover:text-indigo-700" to="/signup">
                                 Create an account
                             </Link>
                         </div>
@@ -405,7 +398,7 @@ const Settings = () => {
             <Navbar />
 
             <SettingsLayout title="Settings" subtitle="Keep your account details and preferences up to date.">
-                <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
                     <SettingsSidebar tabs={TABS} activeKey={activeTab} onChange={setTab} />
 
                     <div className="space-y-6">
@@ -414,15 +407,15 @@ const Settings = () => {
                                 <SettingsForm
                                     title="Account"
                                     description="Update your basic account details."
-                                    footer={
+                                    footer={(
                                         <div className="flex items-center justify-end">
                                             <button type="button" className={primaryBtn} onClick={handleSaveAccount} disabled={accountSaving}>
-                                                {accountSaving ? 'Saving…' : 'Save Changes'}
+                                                {accountSaving ? 'Saving...' : 'Save Changes'}
                                             </button>
                                         </div>
-                                    }
+                                    )}
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                         <SettingsInputField
                                             label="Full Name"
                                             name="fullName"
@@ -461,12 +454,11 @@ const Settings = () => {
                                     />
                                 </SettingsForm>
 
-                                {/* Danger Zone (Account tab only) */}
-                                <div className="bg-white/80 backdrop-blur-xl border border-red-100 rounded-2xl p-6 md:p-8 shadow-[0_8px_40px_rgba(239,68,68,0.08)]">
+                                <div className="theme-surface rounded-2xl border border-red-100 p-6 backdrop-blur-xl md:p-8">
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-slate-800">Danger Zone</h3>
-                                            <p className="mt-1 text-sm text-slate-500">
+                                            <h3 className="theme-text-primary text-lg font-semibold">Danger Zone</h3>
+                                            <p className="theme-text-muted mt-1 text-sm">
                                                 Deleting your account is permanent. Your data will be removed.
                                             </p>
                                         </div>
@@ -482,27 +474,25 @@ const Settings = () => {
                             <SettingsForm
                                 title="Profile"
                                 description="Personalize how you appear to others."
-                                footer={
+                                footer={(
                                     <div className="flex items-center justify-end">
                                         <button type="button" className={primaryBtn} onClick={handleSaveProfile} disabled={profileSaving}>
-                                            {profileSaving ? 'Saving…' : 'Save Changes'}
+                                            {profileSaving ? 'Saving...' : 'Save Changes'}
                                         </button>
                                     </div>
-                                }
+                                )}
                             >
                                 <div className="flex items-center gap-5">
                                     <UserAvatar user={currentUser} size="md" className="border-2 border-white shadow-md" />
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-slate-800">Profile Picture</p>
-                                        <p className="mt-1 text-xs text-slate-500">
+                                        <p className="theme-text-primary text-sm font-semibold">Profile Picture</p>
+                                        <p className="theme-text-muted mt-1 text-xs">
                                             Upload a clear photo to help others recognize you.
                                         </p>
                                         <div className="mt-3 flex items-center gap-3">
-                                            <label
-                                                className={`${primaryBtn} w-auto px-4 py-2.5 cursor-pointer ${uploadingPic ? 'pointer-events-none' : ''}`}
-                                            >
+                                            <label className={`${primaryBtn} w-auto cursor-pointer px-4 py-2.5 ${uploadingPic ? 'pointer-events-none' : ''}`}>
                                                 <Camera size={16} />
-                                                {uploadingPic ? 'Uploading…' : 'Upload'}
+                                                {uploadingPic ? 'Uploading...' : 'Upload'}
                                                 <input
                                                     type="file"
                                                     accept="image/*"
@@ -510,7 +500,7 @@ const Settings = () => {
                                                     onChange={(e) => handleUploadPic(e.target.files?.[0])}
                                                 />
                                             </label>
-                                            <p className="text-xs text-slate-500">JPG/PNG/WEBP</p>
+                                            <p className="theme-text-muted text-xs">JPG/PNG/WEBP</p>
                                         </div>
                                     </div>
                                 </div>
@@ -529,7 +519,7 @@ const Settings = () => {
                                     error={errors.bio}
                                 />
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <SettingsInputField
                                         label="City"
                                         name="city"
@@ -552,12 +542,9 @@ const Settings = () => {
                             <SettingsForm
                                 title="Security"
                                 description="Manage password and account security."
-                                footer={
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                        <Link
-                                            to="/forgot-password"
-                                            className="text-sm text-indigo-600 font-semibold hover:text-indigo-700"
-                                        >
+                                footer={(
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <Link to="/forgot-password" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
                                             Forgot your password?
                                         </Link>
                                         <button
@@ -566,22 +553,22 @@ const Settings = () => {
                                             onClick={handleChangePassword}
                                             disabled={securitySaving}
                                         >
-                                            {securitySaving ? 'Saving…' : 'Save Changes'}
+                                            {securitySaving ? 'Saving...' : 'Save Changes'}
                                         </button>
                                     </div>
-                                }
+                                )}
                             >
                                 {securityError ? (
-                                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                                         {securityError}
                                     </div>
                                 ) : null}
                                 {securitySuccess ? (
-                                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm">
+                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                                         {securitySuccess}
                                     </div>
                                 ) : null}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <SettingsInputField
                                         label="Current Password"
                                         name="currentPassword"
@@ -628,9 +615,9 @@ const Settings = () => {
                                     />
                                 </div>
 
-                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                                    <p className="text-sm font-semibold text-slate-800">Tip</p>
-                                    <p className="mt-1 text-sm text-slate-600">
+                                <div className="theme-subtle-panel rounded-xl p-4">
+                                    <p className="theme-text-primary text-sm font-semibold">Tip</p>
+                                    <p className="theme-text-secondary mt-1 text-sm">
                                         Use a strong password with uppercase, lowercase, a number, and a special character.
                                     </p>
                                 </div>
@@ -641,17 +628,13 @@ const Settings = () => {
                             <SettingsForm
                                 title="Notifications"
                                 description="Choose what you want to be notified about."
-                                footer={
+                                footer={(
                                     <div className="flex items-center justify-end">
-                                        <button
-                                            type="button"
-                                            className={primaryBtn}
-                                            onClick={() => toast.success('Notification preferences saved.')}
-                                        >
+                                        <button type="button" className={primaryBtn} onClick={() => toast.success('Notification preferences saved.')}>
                                             Save Changes
                                         </button>
                                     </div>
-                                }
+                                )}
                             >
                                 <div className="space-y-5">
                                     <ToggleSwitch
@@ -677,46 +660,39 @@ const Settings = () => {
                                 </div>
                             </SettingsForm>
                         ) : null}
-
                     </div>
                 </div>
 
-                {/* Confirmation Modal */}
                 {deleteOpen && activeTab === 'account' ? (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-                        <div className="absolute inset-0 bg-slate-900/40" onClick={closeDeleteModal} aria-hidden="true" />
-                        <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 animate-fade-in">
+                        <div className="theme-modal-backdrop absolute inset-0" onClick={closeDeleteModal} aria-hidden="true" />
+                        <div className="theme-surface relative w-full max-w-md rounded-2xl border p-6 animate-fade-in">
                             {deleteStep === 1 ? (
                                 <>
-                                    <h4 className="text-lg font-semibold text-slate-800">Delete account?</h4>
-                                    <p className="mt-2 text-sm text-slate-600">
-                                        Are you sure you want to delete your account? This action can’t be undone.
+                                    <h4 className="theme-text-primary text-lg font-semibold">Delete account?</h4>
+                                    <p className="theme-text-secondary mt-2 text-sm">
+                                        Are you sure you want to delete your account? This action can't be undone.
                                     </p>
 
                                     <div className="mt-6 flex items-center justify-end gap-3">
                                         <button
                                             type="button"
-                                            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                                            className="theme-btn-secondary rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
                                             onClick={closeDeleteModal}
                                             disabled={deleteLoading}
                                         >
                                             Cancel
                                         </button>
-                                        <button
-                                            type="button"
-                                            className={dangerBtn}
-                                            onClick={() => setDeleteStep(2)}
-                                            disabled={deleteLoading}
-                                        >
+                                        <button type="button" className={dangerBtn} onClick={() => setDeleteStep(2)} disabled={deleteLoading}>
                                             Continue
                                         </button>
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <h4 className="text-lg font-semibold text-slate-800">Final confirmation</h4>
-                                    <p className="mt-2 text-sm text-slate-600">
-                                        This action is permanent. Type <span className="font-semibold text-slate-800">DELETE</span> to confirm.
+                                    <h4 className="theme-text-primary text-lg font-semibold">Final confirmation</h4>
+                                    <p className="theme-text-secondary mt-2 text-sm">
+                                        This action is permanent. Type <span className="theme-text-primary font-semibold">DELETE</span> to confirm.
                                     </p>
 
                                     <div className="mt-5">
@@ -732,7 +708,7 @@ const Settings = () => {
                                     <div className="mt-6 flex items-center justify-end gap-3">
                                         <button
                                             type="button"
-                                            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                                            className="theme-btn-secondary rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
                                             onClick={closeDeleteModal}
                                             disabled={deleteLoading}
                                         >
@@ -744,7 +720,7 @@ const Settings = () => {
                                             onClick={handleDeleteAccount}
                                             disabled={deleteLoading || deleteText.trim().toUpperCase() !== 'DELETE'}
                                         >
-                                            {deleteLoading ? 'Deleting…' : 'Yes, delete'}
+                                            {deleteLoading ? 'Deleting...' : 'Yes, delete'}
                                         </button>
                                     </div>
                                 </>

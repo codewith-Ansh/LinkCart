@@ -20,14 +20,14 @@ const DetailCard = ({ icon, label, value }) => {
     const IconComponent = icon;
 
     return (
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+        <div className="theme-surface rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
             <div className="mb-3 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
                     <IconComponent size={18} />
                 </div>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
+                <span className="theme-text-muted text-[11px] font-semibold uppercase tracking-[0.18em]">{label}</span>
             </div>
-            <p className="text-base font-semibold text-gray-800">{value || 'Not added yet'}</p>
+            <p className="theme-text-primary text-base font-semibold">{value || 'Not added yet'}</p>
         </div>
     );
 };
@@ -208,7 +208,7 @@ const Account = () => {
 
     if (profileLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="theme-page min-h-screen flex items-center justify-center">
                 <Loader2 className="animate-spin text-purple-600" />
             </div>
         );
@@ -226,11 +226,11 @@ const Account = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-purple-50/40 via-white to-gray-50">
+        <div className="theme-page min-h-screen">
             <Navbar />
 
             <div className="mx-auto max-w-6xl px-6 py-12 md:px-8">
-                <div className="rounded-2xl border border-purple-100 bg-gradient-to-r from-white via-white to-purple-50/60 p-6 shadow-sm md:p-8">
+                <div className="theme-hero rounded-2xl p-6 shadow-sm md:p-8">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                             <div className="group relative w-fit">
@@ -262,11 +262,11 @@ const Account = () => {
                                     <input
                                         value={form.name}
                                         onChange={handleChange('name')}
-                                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-2xl font-bold text-gray-800 placeholder:text-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 md:text-3xl"
+                                        className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-2xl font-bold focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 md:text-3xl"
                                         placeholder="Your name"
                                     />
                                 ) : (
-                                    <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                                    <h1 className="theme-text-primary text-3xl font-bold" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                                         {currentUser?.full_name || 'Your profile'}
                                     </h1>
                                 )}
@@ -279,21 +279,21 @@ const Account = () => {
                                             maxLength={50}
                                             rows={2}
                                             placeholder="Add a short tagline (e.g. Tech Enthusiast)"
-                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
+                                            className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
                                         />
-                                        <div className="mt-2 text-right text-xs text-gray-500">{form.tagline.length}/50</div>
+                                        <div className="theme-text-muted mt-2 text-right text-xs">{form.tagline.length}/50</div>
                                     </div>
                                 ) : (
-                                    <p className="mt-2 text-sm text-gray-500">
+                                    <p className="theme-text-muted mt-2 text-sm">
                                         {currentUser?.tagline || 'Add a short tagline (e.g. Tech Enthusiast)'}
                                     </p>
                                 )}
 
                                 <div className="mt-4 flex flex-wrap gap-2">
-                                    <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500">
+                                    <span className="theme-pill rounded-full px-3 py-1.5 text-xs">
                                         {currentUser?.email}
                                     </span>
-                                    <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500">
+                                    <span className="theme-pill rounded-full px-3 py-1.5 text-xs">
                                         {currentUser?.custom_id}
                                     </span>
                                 </div>
@@ -305,7 +305,7 @@ const Account = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(true)}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                                    className="theme-btn-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors"
                                 >
                                     <PencilLine size={16} />
                                     Edit Profile
@@ -315,7 +315,7 @@ const Account = () => {
                                     <button
                                         type="button"
                                         onClick={resetEditingState}
-                                        className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                                        className="theme-btn-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors"
                                     >
                                         Cancel
                                     </button>
@@ -332,7 +332,7 @@ const Account = () => {
                             )}
                             <button
                                 onClick={handleLogout}
-                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                                className="theme-btn-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors"
                             >
                                 <LogOut size={16} />
                                 Logout
@@ -362,22 +362,22 @@ const Account = () => {
                 </div>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div className="theme-surface rounded-2xl p-6">
                         <div className="mb-6 flex items-center justify-between gap-4">
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-900">Profile Essentials</h2>
-                                <p className="mt-1 text-sm text-gray-500">Your core profile details at a glance.</p>
+                                <h2 className="theme-text-primary text-lg font-semibold">Profile Essentials</h2>
+                                <p className="theme-text-muted mt-1 text-sm">Your core profile details at a glance.</p>
                             </div>
                         </div>
 
                         {isEditing && (
-                            <div className="mb-6 rounded-xl border border-gray-100 bg-gray-50 p-5">
+                            <div className="theme-subtle-panel mb-6 rounded-xl p-5">
                                 <label className="block">
-                                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">Phone</span>
+                                    <span className="theme-text-muted mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em]">Phone</span>
                                     <input
                                         value={form.phone}
                                         onChange={handleChange('phone')}
-                                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
+                                        className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
                                         placeholder="Add your phone number"
                                     />
                                 </label>
@@ -391,22 +391,22 @@ const Account = () => {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900">Activity Snapshot</h3>
-                        <p className="mt-1 text-sm text-gray-500">A quick summary of your account activity.</p>
+                    <div className="theme-surface rounded-2xl p-6">
+                        <h3 className="theme-text-primary text-lg font-semibold">Activity Snapshot</h3>
+                        <p className="theme-text-muted mt-1 text-sm">A quick summary of your account activity.</p>
 
                         <div className="mt-6 grid gap-4">
                             {statsError && <p className="text-sm text-red-500">Failed to load stats.</p>}
                             {!statsError && statsItems.map((item) => {
                                 const Icon = item.icon;
                                 return (
-                                <div key={item.label} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">{item.label}</p>
+                                <div key={item.label} className="theme-surface rounded-xl p-5">
+                                    <p className="theme-text-muted text-[11px] font-semibold uppercase tracking-[0.18em]">{item.label}</p>
                                     <div className="mt-3 flex items-center gap-3">
                                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
                                             <Icon size={16} />
                                         </div>
-                                        <p className="text-2xl font-bold text-gray-900">
+                                        <p className="theme-text-primary text-2xl font-bold">
                                             {statsLoading ? <span className="inline-block h-8 w-20 animate-pulse rounded-lg bg-gray-200" /> : item.value}
                                         </p>
                                     </div>
