@@ -66,26 +66,23 @@ const ForgotPassword = () => {
         <>
             <Navbar />
 
-            <div
-                className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14"
-                style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}
-            >
+            <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14">
                 <div className="w-full max-w-md">
-                    <div className="text-center mb-8">
-                        <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <div className="mb-8 text-center">
+                        <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
                             LinkCart
                         </span>
-                        <p className="mt-2 text-slate-500 text-sm">We’ll send a one-time code to your email</p>
+                        <p className="theme-text-secondary mt-2 text-sm">We'll send a one-time code to your email</p>
                     </div>
 
                     <AuthCard title="Forgot Password" subtitle="Enter your registered email to receive an OTP.">
                         {emailError ? (
-                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4">
+                            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                                 {emailError}
                             </div>
                         ) : null}
                         {success ? (
-                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-4">
+                            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                                 {success}
                             </div>
                         ) : null}
@@ -110,10 +107,10 @@ const ForgotPassword = () => {
                             </PrimaryButton>
                         </form>
 
-                        <div className="mt-6 pt-6 border-t">
-                            <p className="text-center text-sm text-slate-500">
+                        <div className="mt-6 border-t pt-6">
+                            <p className="theme-text-secondary text-center text-sm">
                                 Remembered your password?{' '}
-                                <Link to="/login" className="text-indigo-600 font-semibold">
+                                <Link to="/login" className="font-semibold text-indigo-600">
                                     Back to login
                                 </Link>
                             </p>

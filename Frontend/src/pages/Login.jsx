@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
-import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAppContext } from '../context/AppContext';
@@ -15,7 +15,7 @@ const fieldState = (touched, error, value) => {
     return 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400';
 };
 
-const inputBase = 'w-full pl-10 pr-4 py-3 bg-white border rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all duration-200';
+const inputBase = 'theme-input w-full rounded-xl border py-3 pr-4 pl-10 text-sm focus:outline-none focus:ring-4 transition-all duration-200';
 
 const Login = () => {
     const [serverError, setServerError] = useState('');
@@ -44,20 +44,17 @@ const Login = () => {
                     return;
                 }
 
-                // ✅ store everything
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('customId', data.customId);
                 localStorage.setItem('role', data.role);
 
                 login();
 
-                // ✅ proper redirect logic
                 if (data.role === 'admin') {
                     navigate('/admin');
                 } else {
                     navigate(data.redirectTo || '/');
                 }
-
             } catch {
                 setServerError('Server error. Please try again later.');
             } finally {
@@ -70,37 +67,32 @@ const Login = () => {
         <>
             <Navbar />
 
-            <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14"
-                style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}>
-
+            <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14">
                 <div className="w-full max-w-md">
-
-                    <div className="text-center mb-8">
-                        <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <div className="mb-8 text-center">
+                        <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
                             LinkCart
                         </span>
-                        <p className="mt-2 text-slate-500 text-sm">Welcome back — sign in to continue</p>
+                        <p className="theme-text-secondary mt-2 text-sm">Welcome back - sign in to continue</p>
                     </div>
 
-                    <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow">
-
-                        {successMessage && (
-                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-6">
+                    <div className="theme-surface rounded-2xl p-8 backdrop-blur-xl">
+                        {successMessage ? (
+                            <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                                 {successMessage}
                             </div>
-                        )}
+                        ) : null}
 
-                        {serverError && (
-                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6">
+                        {serverError ? (
+                            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                                 {serverError}
                             </div>
-                        )}
+                        ) : null}
 
                         <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4" noValidate>
-
                             <div>
                                 <div className="relative">
-                                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 theme-text-muted" />
                                     <input
                                         type="email"
                                         name="email"
@@ -111,14 +103,14 @@ const Login = () => {
                                         className={`${inputBase} ${fieldState(formik.touched.email, formik.errors.email, formik.values.email)}`}
                                     />
                                 </div>
-                                {formik.touched.email && formik.errors.email && (
-                                    <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
-                                )}
+                                {formik.touched.email && formik.errors.email ? (
+                                    <p className="mt-1 text-xs text-red-500">{formik.errors.email}</p>
+                                ) : null}
                             </div>
 
                             <div>
                                 <div className="relative">
-                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 theme-text-muted" />
                                     <input
                                         type="password"
                                         name="password"
@@ -129,11 +121,11 @@ const Login = () => {
                                         className={`${inputBase} ${fieldState(formik.touched.password, formik.errors.password, formik.values.password)}`}
                                     />
                                 </div>
-                                {formik.touched.password && formik.errors.password && (
-                                    <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
-                                )}
+                                {formik.touched.password && formik.errors.password ? (
+                                    <p className="mt-1 text-xs text-red-500">{formik.errors.password}</p>
+                                ) : null}
                                 <div className="mt-2 text-right">
-                                    <Link to="/forgot-password" className="text-xs text-purple-500 hover:text-purple-600 font-medium">
+                                    <Link to="/forgot-password" className="text-xs font-medium text-purple-500 hover:text-purple-600">
                                         Forgot Password?
                                     </Link>
                                 </div>
@@ -142,18 +134,18 @@ const Login = () => {
                             <button
                                 type="submit"
                                 disabled={formik.isSubmitting}
-                                className="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-3 text-sm font-semibold text-white"
                             >
-                                {formik.isSubmitting ? <Loader2 className="animate-spin mx-auto" /> : 'Sign In'}
+                                {formik.isSubmitting ? <Loader2 className="mx-auto animate-spin" /> : 'Sign In'}
                             </button>
                         </form>
 
-                        <div className="mt-6 pt-6 border-t flex flex-col gap-3">
+                        <div className="mt-6 flex flex-col gap-3 border-t pt-6">
                             <GoogleButton label="Continue with Google" />
 
-                            <p className="text-center text-sm text-slate-500">
+                            <p className="theme-text-secondary text-center text-sm">
                                 Don't have an account?{' '}
-                                <Link to="/signup" className="text-indigo-600 font-semibold">
+                                <Link to="/signup" className="font-semibold text-indigo-600">
                                     Create one
                                 </Link>
                             </p>

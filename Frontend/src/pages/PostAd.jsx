@@ -7,7 +7,7 @@ import API_BASE from '../utils/api';
 import { useAppContext } from '../context/AppContext';
 import { getProfileCompletionDetails, isProfileComplete } from '../utils/profileCompletion';
 
-const inputBase = 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200';
+const inputBase = 'theme-input w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200';
 
 const RupeeIcon = ({ size = 12, className = '' }) => (
     <span
@@ -23,7 +23,7 @@ const Label = ({ icon, children, required }) => {
     const IconComponent = icon;
 
     return (
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+        <label className="theme-label mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
             <IconComponent size={12} className="text-indigo-400" />
             {children}{required && <span className="text-red-400 ml-0.5">*</span>}
         </label>
@@ -104,17 +104,17 @@ const PostAd = () => {
     /* ── success screen ── */
     if (createdSlug) {
         return (
-            <div style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }} className="min-h-screen">
+            <div className="theme-page min-h-screen">
                 <Navbar />
                 <div className="w-full px-6 md:px-12 lg:px-20 py-16 flex items-center justify-center">
-                    <div className="max-w-lg w-full bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-10 shadow-[0_8px_40px_rgba(99,102,241,0.12)] text-center animate-fade-in">
+                    <div className="theme-surface max-w-lg w-full rounded-2xl p-10 text-center backdrop-blur-xl animate-fade-in">
                         <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl mb-6 shadow-md">
                             <CheckCircle size={40} className="text-emerald-500" />
                         </div>
-                        <h2 className="text-3xl font-extrabold mb-2 text-slate-800" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                        <h2 className="theme-text-primary mb-2 text-3xl font-extrabold" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                             Link Created!
                         </h2>
-                        <p className="text-slate-500 text-sm mb-8">Your product is live. Share the link below.</p>
+                        <p className="theme-text-secondary mb-8 text-sm">Your product is live. Share the link below.</p>
 
                         <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
                             <span className="flex-1 text-sm text-indigo-600 font-medium truncate text-left">{productLink}</span>
@@ -135,7 +135,7 @@ const PostAd = () => {
                             </button>
                             <button
                                 onClick={() => navigate('/my-listings')}
-                                className="flex-1 border border-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl hover:bg-slate-50 transition-all duration-200"
+                            className="theme-btn-secondary flex-1 rounded-xl border border-slate-200 px-4 py-3 font-bold transition-all duration-200 hover:bg-slate-50"
                             >
                                 My Listings
                             </button>
@@ -143,7 +143,7 @@ const PostAd = () => {
 
                         <button
                             onClick={() => { setCreatedSlug(null); setFormData({ title: '', price: '', location: '', description: '', visibility: 'public' }); setImage(null); }}
-                            className="mt-5 text-xs text-slate-400 hover:text-indigo-500 transition-colors"
+                            className="theme-text-muted mt-5 text-xs transition-colors hover:text-indigo-500"
                         >
                             + Create another link
                         </button>
@@ -156,7 +156,7 @@ const PostAd = () => {
 
     /* ── form screen ── */
     return (
-        <div style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }} className="min-h-screen">
+        <div className="theme-page min-h-screen">
 
             {/* decorative blobs */}
             <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
@@ -168,12 +168,12 @@ const PostAd = () => {
             <div className="w-full px-6 md:px-12 lg:px-20 py-16 animate-fade-in">
                 <div className="max-w-3xl mx-auto">
 
-                    <h1 className="text-4xl md:text-5xl font-extrabold mb-2 tracking-tight text-slate-800" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                    <h1 className="theme-text-primary mb-2 text-4xl font-extrabold tracking-tight md:text-5xl" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                         Create New Link
                     </h1>
-                    <p className="text-slate-500 text-sm mb-10">Fill in the details below to publish your product listing.</p>
+                    <p className="theme-text-secondary mb-10 text-sm">Fill in the details below to publish your product listing.</p>
 
-                    <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)]">
+                    <div className="theme-surface rounded-2xl p-8 backdrop-blur-xl">
 
                         {error && (
                             <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 animate-fade-in">
@@ -198,9 +198,9 @@ const PostAd = () => {
                         )}
 
                         {!profileComplete && (
-                            <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-                                <p className="font-semibold text-slate-800">Complete your profile to increase trust.</p>
-                                <p className="mt-1 text-xs text-slate-500">Profile completion: {profileDetails.completionPercentage}%</p>
+                            <div className="theme-subtle-panel mb-6 rounded-xl px-4 py-4 text-sm">
+                                <p className="theme-text-primary font-semibold">Complete your profile to increase trust.</p>
+                                <p className="theme-text-secondary mt-1 text-xs">Profile completion: {profileDetails.completionPercentage}%</p>
                             </div>
                         )}
 

@@ -10,7 +10,7 @@ const GoogleButton = ({ label = 'Continue with Google' }) => {
         <button
             type="button"
             onClick={handleClick}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 transition-all duration-200"
+            className="theme-btn-secondary w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md active:translate-y-0"
         >
             {/* Official Google 'G' logo SVG */}
             <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
