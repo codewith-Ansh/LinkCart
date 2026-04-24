@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Camera, LayoutList, Loader2, LogOut, Mail, MapPin, PencilLine, Phone, Save, Link2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -8,6 +9,7 @@ import { useAppContext } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
 import API_BASE from '../utils/api';
 import { getProfileCompletionDetails, isProfileComplete } from '../utils/profileCompletion';
+import { editProfileSchema } from '../utils/validationSchemas';
 
 const detailCards = [
     { key: 'email', label: 'Email', icon: Mail },
@@ -32,6 +34,26 @@ const DetailCard = ({ icon, label, value }) => {
     );
 };
 
+const fieldState = (touched, error, value) => {
+    if (touched && error) return 'border-red-400 focus:ring-red-100 focus:border-red-400';
+    if (touched && !error && value) return 'border-emerald-400 focus:ring-emerald-100 focus:border-emerald-400';
+    return 'border-gray-200 focus:border-purple-400 focus:ring-purple-100';
+};
+
+const FieldError = ({ touched, error }) =>
+    touched && error ? (
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-red-500">
+            <span className="inline-block h-1 w-1 rounded-full bg-red-400" />
+            {error}
+        </p>
+    ) : null;
+
+const normalizePhoneForForm = (phone) => {
+    const raw = String(phone || '').trim();
+    if (!raw) return '';
+    return raw.startsWith('+91') ? raw.slice(3) : raw;
+};
+
 const Account = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -39,7 +61,6 @@ const Account = () => {
     const [stats, setStats] = useState(null);
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsError, setStatsError] = useState(false);
-    const [form, setForm] = useState({ name: '', tagline: '', phone: '' });
     const fileInputRef = useRef(null);
 
     const { isLoggedIn, logout, currentUser, profileLoading, updateCurrentUser } = useAppContext();
@@ -47,6 +68,55 @@ const Account = () => {
     const toast = useToast();
     const profileDetails = getProfileCompletionDetails(currentUser);
     const profileComplete = isProfileComplete(currentUser);
+    const formik = useFormik({
+        initialValues: {
+            name: currentUser?.full_name || '',
+            tagline: currentUser?.tagline || '',
+            phone: normalizePhoneForForm(currentUser?.phone),
+        },
+        enableReinitialize: true,
+        validationSchema: editProfileSchema,
+        validateOnMount: true,
+        onSubmit: async (values) => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+
+            setSaving(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/update-profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: values.name.trim(),
+                        tagline: values.tagline.trim(),
+                        phone: values.phone ? `+91${values.phone}` : '',
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toast.error(data.error || 'Failed to update profile.');
+                    return;
+                }
+
+                updateCurrentUser(data.user);
+                setIsEditing(false);
+                toast.success('Profile updated.');
+            } catch {
+                toast.error('Profile update failed.');
+            } finally {
+                setSaving(false);
+            }
+        },
+    });
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -63,14 +133,6 @@ const Account = () => {
 
         fetchStats(token);
     }, [navigate]);
-
-    useEffect(() => {
-        setForm({
-            name: currentUser?.full_name || '',
-            tagline: currentUser?.tagline || '',
-            phone: currentUser?.phone || '',
-        });
-    }, [currentUser]);
 
     const fetchStats = async (token) => {
         try {
@@ -99,66 +161,66 @@ const Account = () => {
     const handleChange = (field) => (event) => {
         const nextValue = field === 'tagline'
             ? event.target.value.slice(0, 50)
-            : event.target.value;
+            : field === 'phone'
+                ? event.target.value.replace(/\D/g, '').slice(0, 10)
+                : event.target.value;
 
-        setForm((prev) => ({ ...prev, [field]: nextValue }));
+        formik.setFieldValue(field, nextValue);
+        if (formik.touched[field]) {
+            formik.validateField(field);
+        }
     };
 
     const hasUnsavedChanges = useMemo(
         () =>
-            form.name !== (currentUser?.full_name || '') ||
-            form.tagline !== (currentUser?.tagline || '') ||
-            form.phone !== (currentUser?.phone || ''),
-        [form, currentUser]
+            formik.values.name !== (currentUser?.full_name || '') ||
+            formik.values.tagline !== (currentUser?.tagline || '') ||
+            formik.values.phone !== normalizePhoneForForm(currentUser?.phone),
+        [formik.values, currentUser]
     );
 
     const resetEditingState = () => {
-        setForm({
-            name: currentUser?.full_name || '',
-            tagline: currentUser?.tagline || '',
-            phone: currentUser?.phone || '',
+        formik.resetForm({
+            values: {
+                name: currentUser?.full_name || '',
+                tagline: currentUser?.tagline || '',
+                phone: normalizePhoneForForm(currentUser?.phone),
+            },
         });
         setIsEditing(false);
     };
 
+    const openEditingState = () => {
+        formik.resetForm({
+            values: {
+                name: currentUser?.full_name || '',
+                tagline: currentUser?.tagline || '',
+                phone: normalizePhoneForForm(currentUser?.phone),
+            },
+        });
+        setIsEditing(true);
+    };
+
     const handleSave = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/login');
+        const errors = await formik.validateForm();
+        formik.setTouched({
+            name: true,
+            tagline: true,
+            phone: true,
+        });
+
+        if (Object.keys(errors).length > 0) {
+            toast.error('Please fix the highlighted fields.');
             return;
         }
 
-        setSaving(true);
+        await formik.submitForm();
+    };
 
-        try {
-            const response = await fetch(`${API_BASE}/api/users/update-profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    name: form.name,
-                    tagline: form.tagline,
-                    phone: form.phone,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                toast.error(data.error || 'Failed to update profile.');
-                return;
-            }
-
-            updateCurrentUser(data.user);
-            setIsEditing(false);
-            toast.success('Profile updated.');
-        } catch {
-            toast.error('Profile update failed.');
-        } finally {
-            setSaving(false);
-        }
+    const form = {
+        name: formik.values.name,
+        tagline: formik.values.tagline,
+        phone: formik.values.phone,
     };
 
     const handleImageSelection = async (event) => {
@@ -262,7 +324,9 @@ const Account = () => {
                                     <input
                                         value={form.name}
                                         onChange={handleChange('name')}
-                                        className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-2xl font-bold focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 md:text-3xl"
+                                        onBlur={formik.handleBlur}
+                                        name="name"
+                                        className={`theme-input w-full rounded-xl border px-4 py-3 text-2xl font-bold focus:outline-none focus:ring-4 md:text-3xl ${fieldState(formik.touched.name, formik.errors.name, form.name)}`}
                                         placeholder="Your name"
                                     />
                                 ) : (
@@ -270,17 +334,21 @@ const Account = () => {
                                         {currentUser?.full_name || 'Your profile'}
                                     </h1>
                                 )}
+                                {isEditing && <FieldError touched={formik.touched.name} error={formik.errors.name} />}
 
                                 {isEditing ? (
                                     <div className="mt-3 max-w-xl">
                                         <textarea
                                             value={form.tagline}
                                             onChange={handleChange('tagline')}
+                                            onBlur={formik.handleBlur}
+                                            name="tagline"
                                             maxLength={50}
                                             rows={2}
                                             placeholder="Add a short tagline (e.g. Tech Enthusiast)"
-                                            className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
+                                            className={`theme-input w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-4 ${fieldState(formik.touched.tagline, formik.errors.tagline, form.tagline)}`}
                                         />
+                                        <FieldError touched={formik.touched.tagline} error={formik.errors.tagline} />
                                         <div className="theme-text-muted mt-2 text-right text-xs">{form.tagline.length}/50</div>
                                     </div>
                                 ) : (
@@ -304,7 +372,7 @@ const Account = () => {
                             {!isEditing ? (
                                 <button
                                     type="button"
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={openEditingState}
                                     className="theme-btn-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors"
                                 >
                                     <PencilLine size={16} />
@@ -374,12 +442,28 @@ const Account = () => {
                             <div className="theme-subtle-panel mb-6 rounded-xl p-5">
                                 <label className="block">
                                     <span className="theme-text-muted mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em]">Phone</span>
-                                    <input
-                                        value={form.phone}
-                                        onChange={handleChange('phone')}
-                                        className="theme-input w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100"
-                                        placeholder="Add your phone number"
-                                    />
+                                    <div className={`theme-input flex items-center overflow-hidden rounded-xl border transition-all duration-200 ${
+                                        formik.touched.phone && formik.errors.phone
+                                            ? 'border-red-400 ring-4 ring-red-100'
+                                            : formik.touched.phone && !formik.errors.phone && form.phone
+                                                ? 'border-emerald-400 ring-4 ring-emerald-100'
+                                                : 'border-gray-200 focus-within:border-purple-400 focus-within:ring-4 focus-within:ring-purple-100'
+                                    }`}>
+                                        <span className="theme-subtle-panel theme-text-secondary whitespace-nowrap border-r border-slate-200 px-4 py-3 text-sm font-semibold select-none">
+                                            +91
+                                        </span>
+                                        <input
+                                            value={form.phone}
+                                            onChange={handleChange('phone')}
+                                            onBlur={formik.handleBlur}
+                                            name="phone"
+                                            maxLength={10}
+                                            inputMode="numeric"
+                                            className="theme-text-primary flex-1 bg-transparent px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
+                                            placeholder="10-digit mobile number"
+                                        />
+                                    </div>
+                                    <FieldError touched={formik.touched.phone} error={formik.errors.phone} />
                                 </label>
                             </div>
                         )}

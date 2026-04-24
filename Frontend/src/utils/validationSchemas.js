@@ -108,3 +108,18 @@ export const profileSchema = Yup.object({
         .matches(/^[1-9][0-9]{5}$/, 'Enter a valid 6-digit Indian pincode')
         .required('Pincode is required'),
 });
+
+export const editProfileSchema = Yup.object({
+    name: Yup.string()
+        .matches(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces allowed')
+        .min(3, 'Full name must be at least 3 characters')
+        .required('Full name is required'),
+    tagline: Yup.string()
+        .max(50, 'Tagline must be 50 characters or fewer'),
+    phone: Yup.string()
+        .test(
+            'valid-edit-phone',
+            'Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9',
+            (value) => !value || /^[6-9][0-9]{9}$/.test(value)
+        ),
+});

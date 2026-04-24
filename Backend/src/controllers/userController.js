@@ -11,6 +11,26 @@ const FEATURED_HOME_USERS = [
     "Kalp patel",
 ];
 
+const PHONE_ERROR = "Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.";
+
+const normalizeIndianPhone = (value) => {
+    const raw = String(value ?? "").trim();
+
+    if (!raw) {
+        return "";
+    }
+
+    if (/^\+91[6-9]\d{9}$/.test(raw)) {
+        return raw;
+    }
+
+    if (/^[6-9]\d{9}$/.test(raw)) {
+        return `+91${raw}`;
+    }
+
+    return null;
+};
+
 const uploadBufferToCloudinary = (buffer, folder, publicId) =>
     new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -125,13 +145,30 @@ exports.updateProfile = async (req, res) => {
     try {
         const { custom_id } = req.user;
         const { name, tagline, phone } = req.body;
+        const normalizedName = name !== undefined ? String(name).trim() : undefined;
+        const normalizedTagline = tagline !== undefined ? String(tagline).trim() : undefined;
+        const normalizedPhone = phone !== undefined ? normalizeIndianPhone(phone) : undefined;
 
-        if (name !== undefined && !String(name).trim()) {
-            return res.status(400).json({ error: "Name cannot be empty." });
+        if (name !== undefined) {
+            if (!normalizedName) {
+                return res.status(400).json({ error: "Full name is required." });
+            }
+
+            if (!/^[a-zA-Z\s]+$/.test(normalizedName)) {
+                return res.status(400).json({ error: "Only alphabets and spaces allowed in full name." });
+            }
+
+            if (normalizedName.length < 3) {
+                return res.status(400).json({ error: "Full name must be at least 3 characters." });
+            }
         }
 
-        if (tagline !== undefined && String(tagline).length > 50) {
+        if (normalizedTagline !== undefined && normalizedTagline.length > 50) {
             return res.status(400).json({ error: "Tagline must be 50 characters or fewer." });
+        }
+
+        if (normalizedPhone === null) {
+            return res.status(400).json({ error: PHONE_ERROR });
         }
 
         await client.query("BEGIN");
@@ -151,12 +188,12 @@ exports.updateProfile = async (req, res) => {
 
         if (name !== undefined) {
             userFields.push(`full_name = $${paramIndex++}`);
-            userValues.push(String(name).trim());
+            userValues.push(normalizedName);
         }
 
         if (tagline !== undefined) {
             userFields.push(`tagline = $${paramIndex++}`);
-            userValues.push(String(tagline).trim().slice(0, 50));
+            userValues.push(normalizedTagline.slice(0, 50));
         }
 
         if (userFields.length > 0) {
@@ -175,7 +212,7 @@ exports.updateProfile = async (req, res) => {
                 .filter(Boolean)
                 .join(", ");
             const profileCompleted = isProfileComplete({
-                phoneNumber: phone,
+                phoneNumber: normalizedPhone,
                 email: existingProfile.email,
                 location,
             });
@@ -188,7 +225,7 @@ exports.updateProfile = async (req, res) => {
                     phone = EXCLUDED.phone,
                     profile_completed = EXCLUDED.profile_completed,
                     updated_at = NOW()`,
-                [custom_id, phone, profileCompleted]
+                [custom_id, normalizedPhone, profileCompleted]
             );
         }
 
