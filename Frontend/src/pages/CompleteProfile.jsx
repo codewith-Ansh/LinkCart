@@ -35,7 +35,7 @@ const fieldState = (touched, error, value) => {
     return 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400';
 };
 
-const inputBase = 'w-full px-4 py-3 bg-white border rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 transition-all duration-200';
+const inputBase = 'theme-input w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-4 transition-all duration-200';
 
 const FieldError = ({ touched, error }) =>
     touched && error ? (
@@ -48,7 +48,7 @@ const Label = ({ icon, children }) => {
     const IconComponent = icon;
 
     return (
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+        <label className="theme-label mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
             <IconComponent size={12} className="text-indigo-400" />{children}
         </label>
     );
@@ -142,8 +142,7 @@ const CompleteProfile = () => {
         return (
             <>
                 <Navbar />
-                <div className="min-h-[calc(100vh-80px)] flex items-center justify-center"
-                     style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}>
+                <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center">
                     <Loader2 size={32} className="animate-spin text-indigo-500" />
                 </div>
                 <Footer />
@@ -155,8 +154,7 @@ const CompleteProfile = () => {
         <>
             <Navbar />
 
-            <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14"
-                 style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' }}>
+            <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14">
 
                 {/* decorative blobs */}
                 <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
@@ -171,17 +169,17 @@ const CompleteProfile = () => {
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-2xl font-bold shadow-lg shadow-indigo-200 mb-3">
                             {userId.charAt(0).toUpperCase() || '?'}
                         </div>
-                        <p className="text-sm font-semibold text-slate-700">{userId}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Complete your profile to get started</p>
+                        <p className="theme-text-primary text-sm font-semibold">{userId}</p>
+                        <p className="theme-text-muted mt-0.5 text-xs">Complete your profile to get started</p>
                     </div>
 
                     {/* card */}
-                    <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)]">
+                    <div className="theme-surface rounded-2xl p-8 backdrop-blur-xl">
 
-                        <h2 className="font-bold text-2xl text-slate-800 mb-1" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                        <h2 className="theme-text-primary mb-1 text-2xl font-bold" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                             Complete Your Profile
                         </h2>
-                        <p className="text-slate-500 text-sm mb-6">Fill in your details to unlock all features</p>
+                        <p className="theme-text-secondary mb-6 text-sm">Fill in your details to unlock all features</p>
 
                         {serverError && (
                             <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 animate-fade-in">
@@ -195,14 +193,14 @@ const CompleteProfile = () => {
                             {/* Phone */}
                             <div>
                                 <Label icon={Phone}>Phone Number</Label>
-                                <div className={`flex items-center border rounded-xl overflow-hidden bg-white transition-all duration-200
+                                <div className={`theme-input flex items-center overflow-hidden rounded-xl border transition-all duration-200
                                     ${formik.touched.phone && formik.errors.phone
                                         ? 'border-red-400 ring-4 ring-red-100'
                                         : formik.touched.phone && !formik.errors.phone && formik.values.phone
                                         ? 'border-emerald-400 ring-4 ring-emerald-100'
                                         : 'border-slate-200 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100'
                                     }`}>
-                                    <span className="px-4 py-3 bg-slate-50 text-slate-500 font-semibold text-sm border-r border-slate-200 select-none whitespace-nowrap">
+                                    <span className="theme-subtle-panel theme-text-secondary whitespace-nowrap border-r border-slate-200 px-4 py-3 text-sm font-semibold select-none">
                                         +91
                                     </span>
                                     <input
@@ -214,7 +212,7 @@ const CompleteProfile = () => {
                                         onBlur={formik.handleBlur}
                                         maxLength={10}
                                         inputMode="numeric"
-                                        className="flex-1 px-4 py-3 focus:outline-none bg-transparent text-sm text-slate-800 placeholder-slate-400"
+                                        className="theme-text-primary flex-1 bg-transparent px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
                                     />
                                 </div>
                                 <FieldError touched={formik.touched.phone} error={formik.errors.phone} />
@@ -262,7 +260,7 @@ const CompleteProfile = () => {
                                         onChange={formik.handleChange}
                                         onBlur={formik.handleBlur}
                                         disabled={!formik.values.state}
-                                        className={`${inputBase} ${fieldState(formik.touched.city, formik.errors.city, formik.values.city)} disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                                        className={`${inputBase} ${fieldState(formik.touched.city, formik.errors.city, formik.values.city)} disabled:cursor-not-allowed disabled:opacity-70`}
                                     >
                                         <option value="">{formik.values.state ? 'Select City' : 'Select a state first'}</option>
                                         {citiesForState.sort().map(c => (
@@ -286,7 +284,7 @@ const CompleteProfile = () => {
                                     maxLength={6}
                                     inputMode="numeric"
                                     disabled={!formik.values.city}
-                                    className={`${inputBase} ${fieldState(formik.touched.pincode, formik.errors.pincode, formik.values.pincode)} disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                                    className={`${inputBase} ${fieldState(formik.touched.pincode, formik.errors.pincode, formik.values.pincode)} disabled:cursor-not-allowed disabled:opacity-70`}
                                 />
                                 <FieldError touched={formik.touched.pincode} error={formik.errors.pincode} />
                                 {formik.values.state && !formik.errors.pincode && formik.values.pincode.length === 6 && (
@@ -307,7 +305,7 @@ const CompleteProfile = () => {
                                     disabled:hover:shadow-none disabled:hover:translate-y-0"
                             >
                                 {formik.isSubmitting
-                                    ? <><Loader2 size={16} className="animate-spin" />Saving…</>
+                                    ? <><Loader2 size={16} className="animate-spin" />Saving...</>
                                     : <><span>Save Profile</span><ArrowRight size={16} /></>
                                 }
                             </button>
