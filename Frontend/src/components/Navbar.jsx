@@ -32,7 +32,12 @@ const Navbar = () => {
     };
 
     const navLink = "theme-text-primary font-medium hover:text-indigo-600 transition-colors duration-200 relative group";
-    const underline = "absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300";
+    const UnderlineSpan = () => (
+        <span
+            className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 w-0 group-hover:w-full"
+            style={{ transition: 'width 600ms ease-in-out' }}
+        />
+    );
 
     return (
         <nav
@@ -50,19 +55,19 @@ const Navbar = () => {
 
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link to="/" className={navLink}>Home<span className={underline}></span></Link>
-                    <Link to="/products" className={navLink}>Products<span className={underline}></span></Link>
+                    <Link to="/" className={navLink}>Home<UnderlineSpan /></Link>
+                    <Link to="/products" className={navLink}>Products<UnderlineSpan /></Link>
 
                     {!isLoggedIn ? (
                         <>
-                            <Link to="/login" className={navLink}>Login<span className={underline}></span></Link>
+                            <Link to="/login" className={navLink}>Login<UnderlineSpan /></Link>
                             <Link to="/signup" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold px-6 py-2.5 rounded-xl hover:scale-105 hover:shadow-lg transition-all duration-300">
                                 Sign Up
                             </Link>
                         </>
                     ) : (
                         <>
-                            <Link to="/my-listings" className={navLink}>My Listings<span className={underline}></span></Link>
+                            <Link to="/my-listings" className={navLink}>My Listings<UnderlineSpan /></Link>
                             <Link to="/dashboard/interests" className="relative theme-text-primary font-medium hover:text-indigo-600 transition-colors duration-200">
                                 <span className="inline-flex items-center gap-2">
                                     <Bell size={16} />
