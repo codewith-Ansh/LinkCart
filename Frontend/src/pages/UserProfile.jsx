@@ -8,7 +8,6 @@ import { getProductImageSrc } from '../utils/productImage';
 import UserAvatar from '../components/UserAvatar';
 import { formatINR } from '../utils/currency';
 
-const pageBg = { background: 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%)' };
 const Blobs  = () => (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
         <div style={{ width: 500, height: 500, top: '-140px', left: '-140px', background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)', position: 'absolute', borderRadius: '50%' }} />
@@ -17,7 +16,7 @@ const Blobs  = () => (
 );
 
 const ImagePlaceholder = () => (
-    <div className="w-full h-44 bg-gradient-to-br from-slate-100 to-indigo-50 flex flex-col items-center justify-center gap-2 text-slate-400">
+    <div className="theme-surface-muted w-full h-44 flex flex-col items-center justify-center gap-2 theme-text-muted">
         <ImageOff size={28} />
         <span className="text-xs font-medium">No Image Available</span>
     </div>
@@ -48,7 +47,8 @@ const UserProfile = () => {
     }, [custom_id]);
 
     if (loading) return (
-        <div className="min-h-screen" style={pageBg}>
+        <div className="theme-page min-h-screen">
+            <Blobs />
             <Navbar />
             <div className="min-h-[calc(100vh-20rem)] flex items-center justify-center">
                 <Loader2 size={32} className="animate-spin text-indigo-400" />
@@ -58,10 +58,11 @@ const UserProfile = () => {
     );
 
     if (notFound || !user) return (
-        <div className="min-h-screen" style={pageBg}>
+        <div className="theme-page min-h-screen">
+            <Blobs />
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-32 text-center">
-                <h2 className="text-3xl font-bold mb-4 text-slate-800">User not found</h2>
+                <h2 className="theme-text-primary text-3xl font-bold mb-4">User not found</h2>
                 <button
                     className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-8 py-4 rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-200"
                     onClick={() => navigate('/products')}
@@ -76,22 +77,22 @@ const UserProfile = () => {
     const location = [user.city, user.state].filter(Boolean).join(', ');
 
     return (
-        <div className="min-h-screen" style={pageBg}>
+        <div className="theme-page min-h-screen">
             <Blobs />
             <Navbar />
             <div className="w-full px-6 md:px-12 lg:px-20 py-16 animate-fade-in">
 
                 {/* Profile card */}
-                <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur-xl border border-white rounded-2xl p-8 shadow-[0_8px_40px_rgba(99,102,241,0.10)] mb-16 flex items-center gap-6">
+                <div className="theme-surface max-w-2xl mx-auto backdrop-blur-xl rounded-2xl p-8 mb-16 flex items-center gap-6">
                     <UserAvatar user={user} size="md" className="w-20 h-20 text-2xl shrink-0" />
                     <div>
                         <h1 className="text-3xl font-extrabold mb-1" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                             {user.full_name}
                         </h1>
                         <p className="text-sm text-indigo-500 font-semibold mb-2">{user.custom_id}</p>
-                        {user.tagline && <p className="text-sm text-slate-500 mb-2">{user.tagline}</p>}
+                        {user.tagline && <p className="theme-text-secondary text-sm mb-2">{user.tagline}</p>}
                         {location && (
-                            <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                            <div className="theme-text-secondary flex items-center gap-1.5 text-sm">
                                 <MapPin size={14} />
                                 <span>{location}</span>
                             </div>
@@ -100,16 +101,16 @@ const UserProfile = () => {
                 </div>
 
                 {/* Products */}
-                <h2 className="text-3xl font-extrabold mb-8" style={{ fontFamily: 'Clash Display, sans-serif' }}>
+                <h2 className="theme-text-primary text-3xl font-extrabold mb-8" style={{ fontFamily: 'Clash Display, sans-serif' }}>
                     Listings by {user.full_name}
                 </h2>
 
                 {products.length === 0 ? (
                     <div className="text-center py-20">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-50 rounded-full mb-6">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6" style={{ backgroundColor: 'var(--bg-hover)' }}>
                             <Package size={40} className="text-indigo-400" />
                         </div>
-                        <p className="text-gray-500 text-lg">No public listings yet.</p>
+                        <p className="theme-text-secondary text-lg">No public listings yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -118,7 +119,7 @@ const UserProfile = () => {
                             return (
                             <div
                                 key={product.id}
-                                className="group bg-white/80 backdrop-blur-sm border border-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)]"
+                                className="theme-surface group rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_8px_30px_rgba(99,102,241,0.15)]"
                                 onClick={() => navigate(`/p/${product.slug}`)}
                             >
                                 <div className="overflow-hidden">
@@ -129,12 +130,12 @@ const UserProfile = () => {
                                     )}
                                 </div>
                                 <div className="p-4">
-                                    <h3 className="font-bold text-base mb-1 truncate">{product.title}</h3>
+                                    <h3 className="theme-text-primary font-bold text-base mb-1 truncate">{product.title}</h3>
                                     <p className="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1">
                                         {formatINR(product.price)}
                                     </p>
                                     {product.location && (
-                                        <div className="flex items-center gap-1 text-gray-400 text-xs">
+                                        <div className="theme-text-muted flex items-center gap-1 text-xs">
                                             <MapPin size={11} />
                                             <span className="truncate">{product.location}</span>
                                         </div>

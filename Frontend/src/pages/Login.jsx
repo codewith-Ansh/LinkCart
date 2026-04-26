@@ -4,6 +4,7 @@ import { useFormik } from 'formik';
 import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Brand from '../components/Brand';
 import { useAppContext } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
 import { loginSchema } from '../utils/validationSchemas';
@@ -76,11 +77,9 @@ const Login = () => {
 
             <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14" style={{ position: 'relative' }}>
                 <IndianDoodleBg />
-                <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
+                    <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
                     <div className="mb-8 text-center">
-                        <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
-                            LinkCart
-                        </span>
+                        <Brand withText className="justify-center" logoClassName="h-12 w-auto" textClassName="text-3xl" ariaLabel="LinkCart home" />
                         <p className="theme-text-secondary mt-2 text-sm">Welcome back - sign in to continue</p>
                     </div>
 

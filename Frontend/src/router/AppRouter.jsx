@@ -25,6 +25,10 @@ import ResetPassword from '../pages/ResetPassword';
 import Settings from '../pages/Settings';
 import AuthSuccess from '../pages/AuthSuccess';
 import NotFound from '../pages/NotFound';
+import About from '../pages/About';
+import Privacy from '../pages/Privacy';
+import Terms from '../pages/Terms';
+import Contact from '../pages/Contact';
 
 // Decode token and check expiry
 const getValidRole = (token) => {
@@ -71,6 +75,10 @@ const AppRouter = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/auth-success" element={<AuthSuccess />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/contact" element={<Contact />} />
 
                 {/* User routes */}
                 <Route path="/dashboard" element={<Navigate to="/account" replace />} />

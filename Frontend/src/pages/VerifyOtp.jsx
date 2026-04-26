@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Brand from '../components/Brand';
 import API_BASE from '../utils/api';
 import AuthCard from '../components/auth/AuthCard';
 import InputField from '../components/auth/InputField';
@@ -75,9 +76,7 @@ const VerifyOtp = () => {
             <div className="theme-page min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-14">
                 <div className="w-full max-w-md">
                     <div className="mb-8 text-center">
-                        <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
-                            LinkCart
-                        </span>
+                        <Brand withText className="justify-center" logoClassName="h-12 w-auto" textClassName="text-3xl" ariaLabel="LinkCart home" />
                         <p className="theme-text-secondary mt-2 text-sm">
                             {email ? `Enter the 6-digit code sent to ${email}` : 'Enter the 6-digit code'}
                         </p>

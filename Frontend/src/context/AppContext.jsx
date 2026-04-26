@@ -89,6 +89,8 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         document.documentElement.style.colorScheme = theme;
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
         document.body.classList.remove('light', 'dark');
         document.body.classList.add(theme);
     }, [theme]);

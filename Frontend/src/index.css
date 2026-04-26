@@ -10,6 +10,10 @@
   --font-body: "Manrope", sans-serif;
 }
 
+:root {
+  --lc-transition: 0.25s ease-in-out;
+}
+
 :root,
 [data-theme="light"] {
   --bg-primary: #ffffff;
@@ -74,7 +78,8 @@ body.dark {
 *::before,
 *::after {
   box-sizing: border-box;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  transition: all 0.2s ease-in-out;
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform, filter;
 }
 
 .animate-fade-in,
@@ -100,7 +105,18 @@ body {
   min-height: 100vh;
   font-family: var(--font-body);
   background: var(--theme-page-gradient);
+  transition: background-color 0.3s ease, color 0.3s ease;
   color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 #root {
@@ -194,25 +210,61 @@ html[data-theme="dark"] .hero-title-gradient {
   background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
   border: 1px solid var(--border-secondary);
   color: var(--text-primary);
+  transition: all var(--lc-transition);
 }
 
 .theme-btn-secondary:hover {
   background: var(--bg-hover);
   border-color: var(--border-strong);
   color: var(--text-heading);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
+.theme-btn-secondary:active {
+  transform: translateY(0) scale(1.01);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
 .theme-btn-danger {
   background: color-mix(in srgb, #ef4444 16%, var(--bg-elevated));
   border: 1px solid color-mix(in srgb, #ef4444 32%, transparent);
   color: #fca5a5;
+  transition: all var(--lc-transition);
 }
 
 .theme-btn-danger:hover {
   background: color-mix(in srgb, #ef4444 24%, var(--bg-elevated));
+  border-color: color-mix(in srgb, #ef4444 45%, transparent);
   color: #fecaca;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
 }
 
+.theme-btn-danger:active {
+  transform: translateY(0) scale(1.01);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+.btn {
+  transition: all var(--lc-transition);
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card,
+.lc-card {
+  transition: all var(--lc-transition);
+}
+
+.card:hover,
+.lc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
 .theme-pill {
   background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   border: 1px solid var(--border-primary);

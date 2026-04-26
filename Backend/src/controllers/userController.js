@@ -6,9 +6,9 @@ const { isProfileComplete } = require("../utils/profileCompletion");
 const FEATURED_HOME_USERS = [
     "Vraj Baria",
     "Smit Virani",
-    "Xavier",
     "Kunj Sheth",
-    "Kalp patel",
+    "Mayur Patel",
+    "Kalp Patel",
 ];
 
 const PHONE_ERROR = "Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.";
@@ -135,6 +135,43 @@ exports.getFeaturedUsers = async (req, res) => {
         res.json({ users, missingNames });
     } catch (error) {
         console.error("getFeaturedUsers error:", error.message);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const { limit } = req.query;
+        const parsedLimit = limit ? Number.parseInt(String(limit), 10) : null;
+
+        const baseQuery = `SELECT
+                custom_id,
+                full_name,
+                COALESCE(role, 'user') AS role,
+                COALESCE(profile_pic, '') AS profile_pic,
+                COALESCE(tagline, '') AS tagline
+            FROM users
+            WHERE COALESCE(role, '') <> 'admin'
+            ORDER BY joined_at DESC NULLS LAST, full_name ASC`;
+
+        const result = Number.isFinite(parsedLimit) && parsedLimit > 0
+            ? await db.query(`${baseQuery} LIMIT $1`, [parsedLimit])
+            : await db.query(baseQuery);
+
+        res.json({
+            users: result.rows.map(({ custom_id, full_name, role, profile_pic, tagline }) => ({
+                id: custom_id,
+                custom_id,
+                name: full_name,
+                full_name,
+                role,
+                profile_image: profile_pic,
+                profile_pic,
+                tagline,
+            })),
+        });
+    } catch (error) {
+        console.error("getAllUsers error:", error.message);
         res.status(500).json({ error: "Server error" });
     }
 };

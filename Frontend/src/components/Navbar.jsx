@@ -5,6 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import UserAvatar from './UserAvatar';
 import { getDisplayName } from '../utils/profile';
 import ThemeToggle from './ThemeToggle';
+import Brand from './Brand';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,9 +40,13 @@ const Navbar = () => {
             style={{ backgroundColor: 'var(--bg-navbar)', borderColor: 'var(--border-primary)', boxShadow: 'var(--shadow-navbar)' }}
         >
             <div className="w-full px-6 md:px-12 lg:px-20 h-20 flex justify-between items-center">
-                <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent" style={{ fontFamily: 'Clash Display, sans-serif' }}>
-                    LinkCart
-                </Link>
+                <Brand
+                    withText
+                    className="shrink-0"
+                    logoClassName="h-10 w-auto"
+                    textClassName="text-2xl leading-none"
+                    ariaLabel="LinkCart home"
+                />
 
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-8">
