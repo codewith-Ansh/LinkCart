@@ -1,137 +1,181 @@
-# LinkCart - Digital Presence Management Platform
+# LinkCart — Single Product Sharing Platform
 
-A full-stack web application for managing your digital presence with custom links, profiles, and analytics.
+A full-stack web application to build, manage, and share your digital presence through customizable profiles, links, and scalable backend architecture.
 
-## Features
+---
 
-- 🔐 User Authentication (Signup/Login with JWT)
-- 👤 User Profile Management
-- 📝 Profile Completion System
-- 🎨 Modern UI with Tailwind CSS
-- 🔒 Secure Password Hashing
-- 📱 Responsive Design
-- 🗄️ PostgreSQL Database (Neon)
+## 🌐 Overview
 
-## Tech Stack
+LinkCart enables users to create a centralized digital identity — similar to a "link-in-bio" platform — with a focus on performance, clean UI, and secure architecture.
+
+---
+
+## ✨ Features
+
+* Authentication system with JWT
+* Secure password hashing using bcrypt
+* User profile management
+* Profile completion tracking
+* Scalable structure for digital presence (links/products)
+* Responsive UI with Tailwind CSS
+* RESTful API architecture
+* Input validation and security handling
+
+---
+
+## 🛠️ Tech Stack
 
 ### Backend
-- Node.js
-- Express.js
-- PostgreSQL (Neon Database)
-- JWT Authentication
-- bcrypt for password hashing
+
+* Node.js
+* Express.js
+* PostgreSQL (Neon)
+* JWT Authentication
+* bcrypt
 
 ### Frontend
-- React.js
-- React Router
-- Tailwind CSS
-- Vite
 
-## Getting Started
+* React.js
+* React Router
+* Tailwind CSS
+* Vite
+
+---
+
+## 📁 Project Structure (Overview)
+
+```
+LinkCart/
+│
+├── Backend/
+│   ├── routes/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── config/
+│   └── server.js
+│
+├── Frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── routes/
+│   │   └── App.jsx
+│
+└── README.md
+```
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- Neon Database account
 
-### Backend Setup
+* Node.js (v14 or higher)
+* npm or yarn
+* Neon PostgreSQL account
 
-1. Navigate to backend directory:
+---
+
+## 🔙 Backend Setup
+
+**1. Navigate to backend**
+
 ```bash
 cd LinkCart/Backend
 ```
 
-2. Install dependencies:
+**2. Install dependencies**
+
 ```bash
 npm install
 ```
 
-3. Create `.env` file (copy from `.env.example`):
-```bash
-cp .env.example .env
-```
+**3. Create ************`.env`************ file**
 
-4. Update `.env` with your credentials:
 ```
 PORT=5000
-DATABASE_URL="your_neon_database_url"
-JWT_SECRET="your_secret_key"
+DATABASE_URL=your_neon_database_url
+JWT_SECRET=your_secret_key
 ```
 
-5. Start the server:
+**4. Start server**
+
 ```bash
 npm start
 ```
 
-### Frontend Setup
+---
 
-1. Navigate to frontend directory:
+## 🔜 Frontend Setup
+
+**1. Navigate to frontend**
+
 ```bash
 cd LinkCart/Frontend
 ```
 
-2. Install dependencies:
+**2. Install dependencies**
+
 ```bash
 npm install
 ```
 
-3. Start the development server:
+**3. Run app**
+
 ```bash
 npm run dev
 ```
 
-## Database Schema
+---
 
-### users table
-```sql
-CREATE TABLE users (
-    custom_id VARCHAR(20) PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### user_profiles table
-```sql
-CREATE TABLE user_profiles (
-    id SERIAL PRIMARY KEY,
-    user_id VARCHAR(20) UNIQUE REFERENCES users(custom_id) ON DELETE CASCADE,
-    phone VARCHAR(20),
-    address TEXT,
-    city VARCHAR(100),
-    state VARCHAR(100),
-    pincode VARCHAR(20),
-    profile_completed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## API Endpoints
+## 🔌 API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/login` - Login user
+
+* POST `/api/auth/signup`
+* POST `/api/auth/login`
 
 ### Profile
-- `GET /api/profile` - Get user profile (Protected)
-- `POST /api/profile` - Create/Update profile (Protected)
 
-## Environment Variables
+* GET `/api/profile` *(Protected)*
+* POST `/api/profile` *(Protected)*
 
-### Backend
-- `PORT` - Server port (default: 5000)
-- `DATABASE_URL` - PostgreSQL connection string
-- `JWT_SECRET` - Secret key for JWT tokens
+---
 
-## Security Features
+## 🔐 Security
 
-- Password hashing with bcrypt
-- JWT token authentication
-- Protected API routes
-- SQL injection prevention
-- Input validation
+* Password hashing (bcrypt)
+* JWT-based authentication
+* Protected routes
+* Input validation
+* SQL injection prevention
 
-Admin Dashboard branch working
+---
+
+## 🧭 Roadmap
+
+* Analytics dashboard
+* Custom link management
+* Public profile pages
+* Product listing system
+* Admin dashboard
+
+---
+
+## 🤝 Contributing
+
+Contributions and suggestions are welcome.
+
+```bash
+git checkout -b feature/your-feature
+git commit -m "Add your feature"
+git push origin feature/your-feature
+```
+
+---
+
+## 📄 License
+
+MIT License
+
+---
