@@ -32,7 +32,9 @@ const Contact = () => {
                                     as possible.
                                 </p>
                                 <a
-                                    href="mailto:linkcart.dev@gmail.com?subject=LinkCart%20Support"
+                                    href="https://mail.google.com/mail/?view=cm&to=linkcart.dev@gmail.com&su=LinkCart%20Support"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="mt-5 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-200"
                                 >
                                     Email Support
@@ -48,7 +50,9 @@ const Contact = () => {
                                     in mind.
                                 </p>
                                 <a
-                                    href="mailto:partners@linkcart.com?subject=LinkCart%20Partnership"
+                                    href="https://mail.google.com/mail/?view=cm&to=linkcart.dev@gmail.com&su=LinkCart%20Partnership%20Inquiry"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="theme-btn-secondary mt-5 inline-flex items-center justify-center rounded-xl border px-6 py-3 font-bold transition-all duration-300 hover:-translate-y-0.5"
                                 >
                                     Contact Partnerships
