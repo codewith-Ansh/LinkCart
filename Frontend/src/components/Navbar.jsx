@@ -35,7 +35,7 @@ const Navbar = () => {
     const UnderlineSpan = () => (
         <span
             className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 w-0 group-hover:w-full"
-            style={{ transition: 'width 600ms ease-in-out' }}
+            style={{ transition: 'width 250ms ease-in-out' }}
         />
     );
 

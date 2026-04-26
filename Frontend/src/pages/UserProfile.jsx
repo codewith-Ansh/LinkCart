@@ -97,6 +97,18 @@ const UserProfile = () => {
                                 <span>{location}</span>
                             </div>
                         )}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {user.email && (
+                                <span className="theme-pill rounded-full px-3 py-1.5 text-xs">
+                                    {user.email}
+                                </span>
+                            )}
+                            {user.phone && (
+                                <span className="theme-pill rounded-full px-3 py-1.5 text-xs">
+                                    {user.phone}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 

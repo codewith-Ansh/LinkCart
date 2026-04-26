@@ -9,6 +9,7 @@ const FEATURED_HOME_USERS = [
     "Kunj Sheth",
     "Mayur Patel",
     "Kalp Patel",
+    "Harshil Mehta",
 ];
 
 const PHONE_ERROR = "Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.";
@@ -61,6 +62,8 @@ exports.getUserById = async (req, res) => {
       `SELECT 
           u.custom_id,
           u.full_name,
+          u.email,
+          up.phone,
           COALESCE(u.profile_pic, '') AS profile_pic,
           COALESCE(u.tagline, '') AS tagline,
           up.city,
