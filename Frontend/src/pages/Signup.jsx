@@ -61,7 +61,7 @@ const Signup = () => {
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    setServerError(data.error || 'Signup failed');
+                    setServerError(data.message || data.error || 'Signup failed');
                     return;
                 }
                 toast.success('Registration successful! Redirecting to login...');
@@ -91,7 +91,7 @@ const Signup = () => {
             });
             const data = await res.json();
             if (!res.ok) {
-                setServerError(data.error || 'Failed to send OTP');
+                setServerError(data.message || data.error || 'Failed to send OTP');
                 return;
             }
             setOtpSent(true);
@@ -120,7 +120,7 @@ const Signup = () => {
             });
             const data = await res.json();
             if (!res.ok) {
-                setOtpError(data.error || 'OTP verification failed');
+                setOtpError(data.message || data.error || 'OTP verification failed');
                 return;
             }
             setOtpVerified(true);

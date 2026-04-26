@@ -56,15 +56,7 @@ const getAllUsers = async (req, res) => {
 };
 
 const updateUserStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        // Simulated successful update because no status column natively exists
-        return res.status(200).json({ message: "User status updated (Simulated)", user: { custom_id: id } });
-    } catch (error) {
-        console.error("Error updating user status:", error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
+    return res.status(501).json({ error: "User status management is not yet implemented." });
 };
 
 module.exports = {

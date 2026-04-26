@@ -77,7 +77,7 @@ const Settings = () => {
         setAccountForm({
             fullName: currentUser.full_name || '',
             email: currentUser.email || '',
-            phone: currentUser.phone || '',
+            phone: (currentUser.phone || '').replace(/^\+91/, ''),
         });
         setProfileForm({
             bio: currentUser.tagline || '',
@@ -138,7 +138,14 @@ const Settings = () => {
 
         if (!securityForm.currentPassword) nextErrors.currentPassword = 'Current password is required.';
         if (!securityForm.newPassword) nextErrors.newPassword = 'New password is required.';
-        if (securityForm.newPassword && securityForm.newPassword.length < 8) nextErrors.newPassword = 'Minimum 8 characters.';
+        if (securityForm.newPassword) {
+            const p = securityForm.newPassword;
+            if (p.length < 8) nextErrors.newPassword = 'Minimum 8 characters.';
+            else if (!/[A-Z]/.test(p)) nextErrors.newPassword = 'Must contain at least one uppercase letter.';
+            else if (!/[a-z]/.test(p)) nextErrors.newPassword = 'Must contain at least one lowercase letter.';
+            else if (!/[0-9]/.test(p)) nextErrors.newPassword = 'Must contain at least one number.';
+            else if (!/[!@#$%^&*]/.test(p)) nextErrors.newPassword = 'Must contain at least one special character (!@#$%^&*).';
+        }
         if (!securityForm.confirmPassword) nextErrors.confirmPassword = 'Please confirm your new password.';
         if (securityForm.newPassword && securityForm.confirmPassword && securityForm.newPassword !== securityForm.confirmPassword) {
             nextErrors.confirmPassword = 'Passwords do not match.';
@@ -177,7 +184,7 @@ const Settings = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: accountForm.fullName,
-                    phone: String(accountForm.phone || '').trim(),
+                    phone: accountForm.phone ? `+91${accountForm.phone.trim()}` : '',
                 }),
             });
             const data = await res.json();

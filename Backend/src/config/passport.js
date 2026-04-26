@@ -81,7 +81,7 @@ passport.use(
                 const createdUser = await pool.query(insertQuery, insertValues);
                 return done(null, createdUser.rows[0]);
             } catch (error) {
-                console.error("Error:", error.message);
+                console.error("[Google OAuth Strategy Error]:", error.message);
                 return done(error, null);
             }
         }

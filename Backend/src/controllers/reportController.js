@@ -123,6 +123,12 @@ const updateReportStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+
+        const ALLOWED_STATUSES = ['approved', 'rejected', 'pending'];
+        if (!status || !ALLOWED_STATUSES.includes(status)) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: `Invalid status. Must be one of: ${ALLOWED_STATUSES.join(', ')}.` });
+        }
         
         await client.query('BEGIN');
 

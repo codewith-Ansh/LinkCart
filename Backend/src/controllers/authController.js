@@ -239,6 +239,10 @@ exports.verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
 
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required." });
+        }
+
         const normalizedEmail = email.toLowerCase();
         const otpEntry = otpStore[normalizedEmail];
 
@@ -251,9 +255,15 @@ exports.verifyOtp = async (req, res) => {
             return res.status(400).json({ message: "OTP expired." });
         }
 
+        if (otpEntry.attempts >= OTP_MAX_ATTEMPTS) {
+            delete otpStore[normalizedEmail];
+            return res.status(400).json({ message: "Too many incorrect attempts. Please request a new OTP." });
+        }
+
         if (String(otpEntry.otp) !== String(otp)) {
             otpEntry.attempts += 1;
-            return res.status(400).json({ message: "Incorrect OTP." });
+            const remaining = OTP_MAX_ATTEMPTS - otpEntry.attempts;
+            return res.status(400).json({ message: `Incorrect OTP. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.` });
         }
 
         delete otpStore[normalizedEmail];
@@ -275,11 +285,12 @@ exports.googleAuthSuccess = async (req, res) => {
         return res.redirect(buildFrontendUrl("/auth-success", {
             token,
             customId: req.user.custom_id,
+            role: req.user.role || "user",
             redirectTo,
         }));
     } catch (error) {
         console.error("[Google OAuth Error]:", error.message);
-        return res.status(500).json({ message: "Google auth failed." });
+        return res.redirect(buildFrontendUrl("/login", { error: "google_failed" }));
     }
 };
 

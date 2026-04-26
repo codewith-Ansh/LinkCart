@@ -14,6 +14,7 @@ const AuthSuccess = () => {
     useEffect(() => {
         const token = searchParams.get('token');
         const customId = searchParams.get('customId');
+        const role = searchParams.get('role');
         const redirectTo = searchParams.get('redirectTo');
         const authError = searchParams.get('error');
 
@@ -24,6 +25,14 @@ const AuthSuccess = () => {
 
         localStorage.setItem('token', token);
         if (customId) localStorage.setItem('customId', customId);
+        if (role) localStorage.setItem('role', role);
+        else {
+            // Fallback: decode role from JWT
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.role) localStorage.setItem('role', payload.role);
+            } catch { /* non-critical */ }
+        }
 
         login();
 
