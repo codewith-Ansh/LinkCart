@@ -6,12 +6,18 @@ const getTransporter = () => {
     if (!transporter) {
         transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || "smtp.gmail.com",
-            port: process.env.SMTP_PORT || 587,
-            secure: false,
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
             },
+            tls: {
+                rejectUnauthorized: true,
+            },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
         });
     }
 
